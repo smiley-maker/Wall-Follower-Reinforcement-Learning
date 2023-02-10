@@ -103,10 +103,9 @@ class Move():
             dist (Dictionary): full set of data returned from the subscriber. 
         """        
         dist.ranges = list(np.clip(dist.ranges, 0, 3.5))
-        #Resets the robot if it is really close to a wall. 0.12 meters is the minimum sensor
-        #range, so I thought it would be a reasonable value here. 
+        #Resets the robot if it is really close to a wall. 
         for d in dist.ranges: 
-            if d < 0.12: 
+            if d < 0.2: 
                 self.reset_world() #resets the world
 
         state = self.splitRange(dist.ranges) #Gets the state in terms of distance from the front, left, and right sides
