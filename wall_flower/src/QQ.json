@@ -1,0 +1,137 @@
+{
+    "forward: close, right: close, left: close": {
+        "forward": 0,
+        "right": 0,
+        "left": 0
+    },
+    "forward: close, right: close, left: medium": {
+        "forward": 0,
+        "right": 0,
+        "left": 0
+    },
+    "forward: close, right: close, left: far": {
+        "forward": 0,
+        "right": 0,
+        "left": 0
+    },
+    "forward: close, right: medium, left: close": {
+        "forward": 0,
+        "right": 0,
+        "left": 0
+    },
+    "forward: close, right: medium, left: medium": {
+        "forward": 0,
+        "right": 0,
+        "left": 0
+    },
+    "forward: close, right: medium, left: far": {
+        "forward": 0,
+        "right": 0,
+        "left": 0
+    },
+    "forward: close, right: far, left: close": {
+        "forward": 0,
+        "right": 0,
+        "left": 0
+    },
+    "forward: close, right: far, left: medium": {
+        "forward": 0,
+        "right": 0,
+        "left": 0
+    },
+    "forward: close, right: far, left: far": {
+        "forward": 0,
+        "right": 0,
+        "left": 0
+    },
+    "forward: medium, right: close, left: close": {
+        "forward": 0,
+        "right": 0,
+        "left": 0
+    },
+    "forward: medium, right: close, left: medium": {
+        "forward": 0,
+        "right": 0,
+        "left": 0
+    },
+    "forward: medium, right: close, left: far": {
+        "forward": 0,
+        "right": 0,
+        "left": 0
+    },
+    "forward: medium, right: medium, left: close": {
+        "forward": 0,
+        "right": 0,
+        "left": 0
+    },
+    "forward: medium, right: medium, left: medium": {
+        "forward": 0,
+        "right": 0,
+        "left": 0
+    },
+    "forward: medium, right: medium, left: far": {
+        "forward": 0,
+        "right": 0,
+        "left": 0
+    },
+    "forward: medium, right: far, left: close": {
+        "forward": 0,
+        "right": 0,
+        "left": 0
+    },
+    "forward: medium, right: far, left: medium": {
+        "forward": 0,
+        "right": 0,
+        "left": 0
+    },
+    "forward: medium, right: far, left: far": {
+        "forward": 0,
+        "right": 0,
+        "left": 0
+    },
+    "forward: far, right: close, left: close": {
+        "forward": 0,
+        "right": 0,
+        "left": 0
+    },
+    "forward: far, right: close, left: medium": {
+        "forward": 0,
+        "right": 0,
+        "left": 0
+    },
+    "forward: far, right: close, left: far": {
+        "forward": 0,
+        "right": 0,
+        "left": 0
+    },
+    "forward: far, right: medium, left: close": {
+        "forward": 0,
+        "right": 0,
+        "left": 0
+    },
+    "forward: far, right: medium, left: medium": {
+        "forward": 0,
+        "right": 0,
+        "left": 0
+    },
+    "forward: far, right: medium, left: far": {
+        "forward": 0,
+        "right": 0,
+        "left": 0
+    },
+    "forward: far, right: far, left: close": {
+        "forward": 0,
+        "right": 0,
+        "left": 0
+    },
+    "forward: far, right: far, left: medium": {
+        "forward": 0,
+        "right": 0,
+        "left": 0
+    },
+    "forward: far, right: far, left: far": {
+        "forward": 0,
+        "right": 0,
+        "left": 0
+    }
+}
