@@ -72,7 +72,7 @@
     "forward: medium, right: medium, left: far": {
         "forward": 1,
         "right": 0,
-        "left": 0
+        "left": 1
     },
     "forward: medium, right: far, left: close": {
         "forward": 1,
