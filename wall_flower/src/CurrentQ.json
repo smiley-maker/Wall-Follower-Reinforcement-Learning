@@ -1,0 +1,137 @@
+{
+    "forward: close, right: close, left: close": {
+        "forward": -73.77868297808021,
+        "right": -73.78533700616286,
+        "left": -69.06624424987032
+    },
+    "forward: close, right: close, left: medium": {
+        "forward": -59.31602810838393,
+        "right": -59.85058893296377,
+        "left": -59.455210812522424
+    },
+    "forward: close, right: close, left: far": {
+        "forward": -68.32438805661846,
+        "right": -68.16588950364184,
+        "left": -68.16888267955677
+    },
+    "forward: close, right: medium, left: close": {
+        "forward": -55.14959616494211,
+        "right": -47.87326665742801,
+        "left": -55.84371789751942
+    },
+    "forward: close, right: medium, left: medium": {
+        "forward": -43.01695462405381,
+        "right": -36.98085872267377,
+        "left": -42.70963220814351
+    },
+    "forward: close, right: medium, left: far": {
+        "forward": -49.85157429698271,
+        "right": -49.92833495647749,
+        "left": -51.03859852812198
+    },
+    "forward: close, right: far, left: close": {
+        "forward": -49.05143638622268,
+        "right": -49.1306449570483,
+        "left": -49.895976509522455
+    },
+    "forward: close, right: far, left: medium": {
+        "forward": -50.59834151967986,
+        "right": -48.35930845803096,
+        "left": -50.55395463877871
+    },
+    "forward: close, right: far, left: far": {
+        "forward": 0,
+        "right": 0,
+        "left": 0
+    },
+    "forward: medium, right: close, left: close": {
+        "forward": -33.941536071620135,
+        "right": -33.51943412821878,
+        "left": -33.6272530040703
+    },
+    "forward: medium, right: close, left: medium": {
+        "forward": -41.85329902524493,
+        "right": -44.51070595489323,
+        "left": -39.677124307780524
+    },
+    "forward: medium, right: close, left: far": {
+        "forward": -42.729122096794484,
+        "right": -46.91123975053452,
+        "left": -44.74929530163359
+    },
+    "forward: medium, right: medium, left: close": {
+        "forward": -44.70255067409152,
+        "right": -45.085472676388285,
+        "left": -45.460098108173575
+    },
+    "forward: medium, right: medium, left: medium": {
+        "forward": -31.470750079803274,
+        "right": -30.813935448482535,
+        "left": -25.507775841267115
+    },
+    "forward: medium, right: medium, left: far": {
+        "forward": -38.432948882673905,
+        "right": -27.823211171355943,
+        "left": -38.60678285967215
+    },
+    "forward: medium, right: far, left: close": {
+        "forward": -47.4274098755925,
+        "right": -48.7866606186984,
+        "left": -48.70308266902085
+    },
+    "forward: medium, right: far, left: medium": {
+        "forward": -38.9843831764187,
+        "right": -39.755935277337265,
+        "left": -39.82189681561286
+    },
+    "forward: medium, right: far, left: far": {
+        "forward": -40.15593241737112,
+        "right": -40.2817489167502,
+        "left": -39.08430060071987
+    },
+    "forward: far, right: close, left: close": {
+        "forward": -25.267642457658354,
+        "right": -26.445536728973277,
+        "left": -30.163192369228724
+    },
+    "forward: far, right: close, left: medium": {
+        "forward": -52.19540648470672,
+        "right": -46.20249723087132,
+        "left": -52.163703625462176
+    },
+    "forward: far, right: close, left: far": {
+        "forward": -44.724110495810336,
+        "right": -44.45832840206365,
+        "left": -44.661165445687864
+    },
+    "forward: far, right: medium, left: close": {
+        "forward": -47.35511940276381,
+        "right": -55.09106519613024,
+        "left": -55.05596951342935
+    },
+    "forward: far, right: medium, left: medium": {
+        "forward": -41.650478234397816,
+        "right": -40.112987649538205,
+        "left": -31.845783873225468
+    },
+    "forward: far, right: medium, left: far": {
+        "forward": -51.81881231006403,
+        "right": -40.9822246155449,
+        "left": -51.89269137737882
+    },
+    "forward: far, right: far, left: close": {
+        "forward": -59.71850352674252,
+        "right": -56.68112294139949,
+        "left": -59.419536059002084
+    },
+    "forward: far, right: far, left: medium": {
+        "forward": -53.39605921389783,
+        "right": -53.366638505405525,
+        "left": -47.91327937397329
+    },
+    "forward: far, right: far, left: far": {
+        "forward": -52.43734960607496,
+        "right": -52.477486651860154,
+        "left": -49.64043710303083
+    }
+}

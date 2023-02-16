@@ -1,0 +1,25 @@
+{
+  "configurations": [
+    {
+      "browse": {
+        "databaseFilename": "${default}",
+        "limitSymbolsToIncludedHeaders": false
+      },
+      "includePath": [
+        "/opt/ros/noetic/include/**",
+        "/home/jordansinclair/catkin_ws/src/ros_course_project/include/**",
+        "/home/jordansinclair/catkin_ws/src/ros_course_project_two/include/**",
+        "/home/jordansinclair/catkin_ws/src/turtlebot3_simulations/turtlebot3_fake/include/**",
+        "/home/jordansinclair/catkin_ws/src/turtlebot3_simulations/turtlebot3_gazebo/include/**",
+        "/home/jordansinclair/catkin_ws/src/Wall-Follower-Reinforcement-Learning/wall_flower/include/**",
+        "/usr/include/**"
+      ],
+      "name": "ROS",
+      "intelliSenseMode": "gcc-x64",
+      "compilerPath": "/usr/bin/gcc",
+      "cStandard": "gnu11",
+      "cppStandard": "c++14"
+    }
+  ],
+  "version": 4
+}

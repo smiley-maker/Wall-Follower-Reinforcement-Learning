@@ -38,7 +38,7 @@ class makeTable():
         """
         Generates a json file using the queue table determined above. 
         """        
-        with open("QQ.json", "w") as f:
+        with open("CurrentQ.json", "w") as f:
             json.dump(self.q, f, indent=4)
     
 
