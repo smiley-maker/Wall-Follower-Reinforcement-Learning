@@ -102,6 +102,8 @@ class Move():
     
     def calculateResult(self, ranges):
         state = self.splitRange(ranges)
+        #reward calculation
+        
         res = ""
         close_min = 0
         medium_min = 0.7
@@ -117,10 +119,10 @@ class Move():
             freward = -5
         if medium_min <= state[0] < far_min:
             res += "forward: medium, "
-            freward = -1
+            freward = 0
         if far_min <= state[0] <= far_max:
             res += "forward: far, "
-            freward = -5
+            freward = 0
     
         #right
         if close_min <= state[1] < medium_min:
@@ -128,7 +130,7 @@ class Move():
             rreward = -5
         if medium_min <= state[1] < far_min:
             res += "right: medium, "
-            rreward = -1
+            rreward = 10
         if far_min <= state[1] <= far_max:
             res += "right: far, "
             rreward = -5
