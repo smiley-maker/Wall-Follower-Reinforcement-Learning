@@ -23,13 +23,18 @@ class Learning():
     scan = None
     ranges = None
     df = None
+    mode = "train"
 
-    def __init__(self):
+    def __init__(self, mode="train"):
+        self.mode = mode
         self.init_node()
         self.init_services()
         self.init_publisher()
         self.init_subscriber()
-        self.learn()
+        if self.mode == "train":
+            self.learn()
+      #  elif self.mode == "display":
+           # self.runFile()
     
     def init_services(self):
         rospy.wait_for_service("/gazebo/reset_world")
@@ -43,6 +48,7 @@ class Learning():
     
     def init_subscriber(self):
         self.sub = rospy.Subscriber("/scan", LaserScan, self.callback)
+        rospy.spin()
     
     def publishTwist(self, twister):
         t = Twist()
@@ -237,14 +243,25 @@ class Learning():
                 self.dataframeToFile(self.df)
 #                print(self.df)
                 #self.dataframeToFile(df)
+    
+    def runFile(self):
+        while not Learning.scan and not rospy.is_shutdown():
+            self.reset_world()
+            rospy.sleep(0.1)
+        df = pd.read_json("currentData.json")
+        reward, state = self.rewardState(self.ranges, 0.5, 1.1)
+        x = df[(df["front right"] == state[0]) & (df["front left"] == state[1]) & (df["left"] == state[2]) & (df["back left"] == state[3])].index
+        action = max(df[["forward", "turn right", "turn left"]].iloc[x])
+        self.publishTwist(Learning.twists[action])
         
 
     def callback(self, dist):
         Learning.scan = True
         Learning.ranges = list(dist.ranges)
+        self.runFile()
     
 
 
 if __name__ == "__main__":
-    l = Learning()
+    l = Learning(mode="display")
         
