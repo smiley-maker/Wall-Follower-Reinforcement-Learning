@@ -7,6 +7,7 @@ from geometry_msgs.msg import Twist
 from std_srvs.srv import Empty
 import json
 import numpy as np
+import random
 
 class Move():
     #Defines the possible action set and how they will be represented using twists. 
@@ -76,7 +77,10 @@ class Move():
 
         Args:
             ranges (List): List of range values based on 360 degrees of data. 
-        """        
+        """     
+ #       for i,r in enumerate(ranges):
+#            if r == "inf":
+#                ranges[i] = 3.6
         front = [r for r in ranges[339:359] if r != "inf"] + [c for c in ranges[0:19] if c != "inf"]
         front = min(front)
         left = [i for i in ranges[44:134] if i != "inf"]
@@ -100,61 +104,11 @@ class Move():
         with open(filename, "w") as f:
             json.dump(table, f, indent=4)
     
-    def calculateResult(self, ranges):
-        state = self.splitRange(ranges)
-        #reward calculation
-        
-        res = ""
-        close_min = 0
-        medium_min = 0.7
-        far_min = 1.7
-        far_max = 4
-        freward = 0
-        lreward = 0
-        rreward = 0
-
-        #forward
-        if close_min <= state[0] < medium_min:
-            res += "forward: close, "
-            freward = -5
-        if medium_min <= state[0] < far_min:
-            res += "forward: medium, "
-            freward = 0
-        if far_min <= state[0] <= far_max:
-            res += "forward: far, "
-            freward = 0
-    
-        #right
-        if close_min <= state[1] < medium_min:
-            res += "right: close, "
-            rreward = -5
-        if medium_min <= state[1] < far_min:
-            res += "right: medium, "
-            rreward = 10
-        if far_min <= state[1] <= far_max:
-            res += "right: far, "
-            rreward = -5
-        
-        #left
-        if close_min <= state[2] < medium_min:
-            res += "left: close"
-            lreward = -5
-        if medium_min <= state[2] < far_min:
-            res += "left: medium"
-            lreward = -1
-        if far_min <= state[2] <= far_max:
-            res += "left: far"
-            lreward = -5
-        
-        reward = lreward + rreward + freward
-        
-        return res, reward
     
     def updateQValue(self, reward, Q, old_state, new_state, action, alpha=0.2, gamma=0.8):
         temp_diff = reward + gamma*(max(Q[new_state].values()))
         newQ = Q[old_state][action] + alpha*(temp_diff -Q[old_state][action])
         Q[old_state][action] = newQ
-#        return newQ
     
  
     def getStringState(self, state, cmin, mmin, fmin):
@@ -182,42 +136,88 @@ class Move():
         
         return res
 
+    def calculateReward(self, state, mmin, fmin):
+        reward = 0
+        if state[1] < mmin or state[1] >= fmin or state[0] < mmin or state[2] < mmin:
+            reward = -5
+        else: 
+            reward = 1
+        return reward
 
+    def rewardState(self, ranges, mmin, fmin):
+        state = self.splitRange(ranges)
+        reward = self.calculateReward(state, mmin, fmin)
+        state = self.getStringState(state, 0, mmin, fmin)
+        return reward, state
  
-    def episode(self, Q):
+    def episode(self, Q, eps):
         self.reset_world()
+
+        steps = 0
+        counter = 0
+        termination = False
         Move.scan = None
+
         while not Move.scan and not rospy.is_shutdown():
             rospy.sleep(0.1)
         
-        state, reward = self.calculateResult(Move.ranges)
-#        res = self.getStringState(state, 0, 0.7, 2.1)
-        action = max(Q[state], key=Q[state].get)
+        reward, state = self.rewardState(Move.ranges, 0.5, 1.1)
+
+        if random.random() < eps:
+            action = np.random.choice(list(Q[state].keys()))
+        else:
+            action = max(Q[state], key=Q[state].get)
+   
         self.publishTwist(Move.twists[action])
-        termination = False
-#        print(Move.scan)
+
         while not termination and not rospy.is_shutdown():
             rospy.sleep(0.1)
-            newState, reward = self.calculateResult(Move.ranges)
-            self.updateQValue(reward, Q, state, newState, action)
-            state = newState
-            action = max(Q[state], key=Q[state].get)
-            self.publishTwist(self.twists[action])
+            steps += 1
+
+            reward, newState = self.rewardState(Move.ranges, 0.5, 1.1)
+            print(newState)
+
+            if "left: far" in state:
+                counter += 1
+            else:
+                counter = 0
+            if counter >= 200:
+                reward -= 100
+                termination = True
             for d in Move.ranges:
-                if d < 0.2:
-                    termination = True  
+                if not rospy.is_shutdown():
+                    if d < 0.2:
+                        reward -= 100
+                        termination = True
+            if steps >= 800:
+    #            reward += 100
+                termination = True
+            
+            self.updateQValue(reward, Q, state, newState, action)
+
+            state = newState
+
+            if random.random() < eps:
+                action = np.random.choice(list(Q[state].keys()))
+            else:
+                action = max(Q[state], key=Q[state].get)
+    
+            self.publishTwist(self.twists[action])
             
     def learning(self):
-        for episode in range(300):
+        eps = 0.9
+        duration = 300
+        for episode in range(duration):
             self.reset_world()
             if not rospy.is_shutdown():
                 print(episode)
                 Q = self.getTable("CurrentQ.json")
 #                Q = self.getTable("CurrentQ_" + str(episode) + ".json")
-                self.episode(Q)
+                self.episode(Q, eps)
  #               name = "CurrentQ_" + str(episode+1) + ".json"
                 name = "CurrentQ.json"
                 self.saveTable(Q, name)
+                eps -= 1.2*(0.9-0.1)/300
 
 
     def callback(self, dist):
@@ -229,54 +229,8 @@ class Move():
             dist (Dictionary): full set of data returned from the subscriber. 
         """        
         Move.scan = True
-        dist.ranges = list(np.clip(dist.ranges, 0, 3.5))
+#        dist.ranges = list(np.clip(dist.ranges, 0, 3.5))
         Move.ranges = dist.ranges
-#        self.learning(dist.ranges)
-        #Resets the robot if it is really close to a wall. 
-        # for d in dist.ranges: 
-        #     if d < 0.2: 
-        #         self.reset_world() #resets the world
-
-        # state = self.splitRange(dist.ranges) #Gets the state in terms of distance from the front, left, and right sides
-        
-        # #This section formats the input data as a string to compare it with the Q-Table. 
-        # res = ""
-        # close_min = 0
-        # close_max = 0.7
-        # medium_min = 0.7
-        # medium_max = 1.7
-        # far_min = 1.7
-        # far_max = 3.5
-        # #forward
-        # if close_min <= state[0] <= close_max:
-        #     res += "forward: close, "
-        # if medium_min <= state[0] <= medium_max:
-        #     res += "forward: medium, "
-        # if far_min <= state[0] <= far_max:
-        #     res += "forward: far, "
-
-        # #right
-        # if close_min <= state[1] <= close_max:
-        #     res += "right: close, "
-        # if medium_min <= state[1] <= medium_max:
-        #     res += "right: medium, "
-        # if far_min <= state[1] <= far_max:
-        #     res += "right: far, "
-        
-        # #left
-        # if close_min <= state[2] <= close_max:
-        #     res += "left: close"
-        # if medium_min <= state[2] <= medium_max:
-        #     res += "left: medium"
-        # if far_min <= state[2] <= far_max:
-        #     res += "left: far"
-        
-        # q = self.getTable("Q.json") #Gets the q table
-        # print(q)
-        # #Calculates the maximum utility action as defined in the dictionary.
-        # val = max(q[res], key=q[res].get)
-        # #Publishes the twists to send the robot a move command. 
-        # self.publishTwist(self.twists[val]) 
 
 
 if __name__ == "__main__":
