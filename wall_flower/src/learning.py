@@ -167,10 +167,13 @@ class Learning():
         
     def calculateReward(self, state, mmin, fmin):
         #state: [front right, front left, left, back left]
+        reward = 0
         if min([state[1], state[2], state[3]]) < mmin or min([state[1], state[2], state[3]]) >= fmin or min([state[0], state[1]]) < mmin:
-            reward = -5
-        else:
-            reward = 0
+            reward += -15
+        if mmin <= min([state[1], state[2], state[3]]) < fmin:
+            reward += 1
+ #       else:
+#            reward = 0
         return reward
     
     def rewardState(self, ranges, mmin, fmin):
