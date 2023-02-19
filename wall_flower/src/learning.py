@@ -26,15 +26,15 @@ class Learning():
     mode = "train"
 
     def __init__(self, mode="train"):
-        self.mode = mode
+        Learning.mode = mode
         self.init_node()
         self.init_services()
         self.init_publisher()
         self.init_subscriber()
-        if self.mode == "train":
+        if Learning.mode == "train":
             self.learn()
-      #  elif self.mode == "display":
-           # self.runFile()
+        elif Learning.mode == "display":
+            self.runFile()
     
     def init_services(self):
         rospy.wait_for_service("/gazebo/reset_world")
@@ -48,7 +48,6 @@ class Learning():
     
     def init_subscriber(self):
         self.sub = rospy.Subscriber("/scan", LaserScan, self.callback)
-        rospy.spin()
     
     def publishTwist(self, twister):
         t = Twist()
@@ -167,9 +166,8 @@ class Learning():
         return strState
         
     def calculateReward(self, state, mmin, fmin):
-        #print(state)
-        reward = 0
-        if state[1] < mmin or state[1] >= fmin or state[0] < mmin or state[2] < mmin:
+        #state: [front right, front left, left, back left]
+        if min([state[1], state[2], state[3]]) < mmin or min([state[1], state[2], state[3]]) >= fmin or min([state[0], state[1]]) < mmin:
             reward = -5
         else:
             reward = 0
@@ -220,8 +218,13 @@ class Learning():
                         termination = True
             if steps >= 800:
                 termination = True
-            
-            self.updateQValue(reward, self.df, state, newState, action)
+            try:
+                self.updateQValue(reward, self.df, state, newState, action)
+            except:
+                print(newState)
+                print("____________________________________")
+                print(state)
+                raise
             state = newState
 
             x = self.df[(self.df["front right"] == state[0]) & (self.df["front left"] == state[1]) & (self.df["left"] == state[2]) & (self.df["back left"] == state[3])].index
@@ -249,19 +252,58 @@ class Learning():
             self.reset_world()
             rospy.sleep(0.1)
         df = pd.read_json("currentData.json")
-        reward, state = self.rewardState(self.ranges, 0.5, 1.1)
+        print("file read")
+      #  reward, state = self.rewardState(self.ranges, 0.5, 1.1)
+      #  x = df[(df["front right"] == state[0]) & (df["front left"] == state[1]) & (df["left"] == state[2]) & (df["back left"] == state[3])].index
+      #  action = max(df[["forward", "turn right", "turn left"]].iloc[x])
+      #  self.publishTwist(Learning.twists[action])
+
+
+        steps = 0
+        counter = 0
+        randoms = 0
+        termination = False
+        Learning.scan = None
+
+        reward, state = self.rewardState(Learning.ranges, 0.5, 1.1)
+
         x = df[(df["front right"] == state[0]) & (df["front left"] == state[1]) & (df["left"] == state[2]) & (df["back left"] == state[3])].index
-        action = max(df[["forward", "turn right", "turn left"]].iloc[x])
+        action = max(df[["forward", "turn right", "turn left"]].loc[x])
         self.publishTwist(Learning.twists[action])
+        self.reset_world()
+
+        while not termination and not rospy.is_shutdown():
+            rospy.sleep(0.1)
+            steps += 1
+
+            reward, newState = self.rewardState(Learning.ranges, 0.5, 1.1)
+            if state[1] == "far":
+                counter += 1
+            else:
+                counter = 0
+            if counter >= 150:
+                termination = True
+            for d in Learning.ranges:
+                if not rospy.is_shutdown():
+                    if d < 0.2:
+                        reward -= 75
+                        termination = True
+            if steps >= 800:
+                termination = True
+            
+            state = newState
+
+            x = df[(df["front right"] == state[0]) & (df["front left"] == state[1]) & (df["left"] == state[2]) & (df["back left"] == state[3])].index
+            action = max(df[["forward", "turn right", "turn left"]].iloc[x])
+            self.publishTwist(Learning.twists[action])
         
 
     def callback(self, dist):
         Learning.scan = True
         Learning.ranges = list(dist.ranges)
-        self.runFile()
     
 
 
 if __name__ == "__main__":
-    l = Learning(mode="display")
+    l = Learning(mode="train")
         
