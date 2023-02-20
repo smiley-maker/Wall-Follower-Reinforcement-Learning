@@ -167,8 +167,9 @@ class Learning():
         
     def calculateReward(self, state, mmin, fmin):
         #state: [front right, front left, left, back left]
-        reward = 0
-        if min([state[1], state[2], state[3]]) < mmin or min([state[1], state[2], state[3]]) >= fmin or min([state[0], state[1]]) < mmin:
+        reward = -1
+        #min([state[1], state[2], state[3]]) < mmin or min([state[1], state[2], state[3]]) >= fmin or 
+        if min([state[0], state[1]]) < mmin:
             reward += -15
         if mmin <= min([state[1], state[2], state[3]]) < fmin:
             reward += 1
@@ -238,14 +239,14 @@ class Learning():
             self.publishTwist(Learning.twists[action])
 
     def learn(self):
-        eps = 0.9
+        eps = 0
         duration = 300
         self.df = self.makeQTable()
         for episode in range(duration):
             if not rospy.is_shutdown(): 
                 print("Episode: " + str(episode))
                 self.episode(eps)
-                eps -= 1.2*(0.9-0.1)/duration
+                #eps -= 1.2*(0.9-0.1)/duration
                 self.dataframeToFile(self.df)
 #                print(self.df)
                 #self.dataframeToFile(df)

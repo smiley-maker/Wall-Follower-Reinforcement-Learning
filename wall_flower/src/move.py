@@ -5,6 +5,7 @@ import rospy
 from sensor_msgs.msg import LaserScan
 from geometry_msgs.msg import Twist
 from std_srvs.srv import Empty
+import matplotlib.pyplot as plt
 import json
 import numpy as np
 import random
@@ -81,6 +82,10 @@ class Move():
  #       for i,r in enumerate(ranges):
 #            if r == "inf":
 #                ranges[i] = 3.6
+        ranges = list(ranges)
+        for i, r in enumerate(ranges):
+            if r > 3.5:
+                ranges[i] = 3.6
         front = [r for r in ranges[339:359] if r != "inf"] + [c for c in ranges[0:19] if c != "inf"]
         front = min(front)
         left = [i for i in ranges[44:134] if i != "inf"]
@@ -113,9 +118,9 @@ class Move():
  
     def getStringState(self, state, cmin, mmin, fmin):
         res = ""
-        if cmin <= state[0] < mmin:
+        if cmin <= state[0] <= mmin:
             res += "forward: close, "
-        elif mmin <= state[0] < fmin:
+        elif mmin <= state[0] <= fmin:
             res += "forward: medium, "
         elif fmin <= state[0] <= 4:
             res += "forward: far, "
@@ -149,12 +154,28 @@ class Move():
         reward = self.calculateReward(state, mmin, fmin)
         state = self.getStringState(state, 0, mmin, fmin)
         return reward, state
+    
+    def plotLearning(self, episodes, data):
+        fig, (learning,_) = plt.subplots(2, 1)
+
+        print(episodes)
+
+        numEpisodes = range(len(data))
+
+        learning.plot(numEpisodes, data)
+
+        plt.savefig("learning.pdf")
+        plt.close()
+        
  
-    def episode(self, Q, eps):
+    def episode(self, Q, eps, num):
         self.reset_world()
 
         steps = 0
         counter = 0
+        total = 0
+        correct = 0
+        val = 0
         termination = False
         Move.scan = None
 
@@ -175,24 +196,31 @@ class Move():
             steps += 1
 
             reward, newState = self.rewardState(Move.ranges, 0.5, 1.1)
-            print(newState)
 
             if "left: far" in state:
                 counter += 1
             else:
                 counter = 0
             if counter >= 200:
-                reward -= 100
+                reward -= 50
+                if total:
+                    val = correct/total
+                    print(val)
                 termination = True
             for d in Move.ranges:
                 if not rospy.is_shutdown():
                     if d < 0.2:
                         reward -= 100
+                        if total:
+                            val = correct/total
+                            print(val)
                         termination = True
             if steps >= 800:
     #            reward += 100
-                termination = True
-            
+                if total:
+                    val = correct/total
+                    print(val)
+                termination = True            
             self.updateQValue(reward, Q, state, newState, action)
 
             state = newState
@@ -201,23 +229,31 @@ class Move():
                 action = np.random.choice(list(Q[state].keys()))
             else:
                 action = max(Q[state], key=Q[state].get)
+                if state == "forward: close, right: far, left: close" or state == "forward: medium, right: far, left: close" or state=="forward: medium, right: far, left: medium":
+                    total += 1
+                    if action == "right":
+                        correct += 1
     
             self.publishTwist(self.twists[action])
-            
+        return val, total
+                    
     def learning(self):
         eps = 0.9
         duration = 300
+        data = []
         for episode in range(duration):
             self.reset_world()
             if not rospy.is_shutdown():
                 print(episode)
                 Q = self.getTable("CurrentQ.json")
 #                Q = self.getTable("CurrentQ_" + str(episode) + ".json")
-                self.episode(Q, eps)
+                x, total = self.episode(Q, eps, episode)
+                data.append(x)
  #               name = "CurrentQ_" + str(episode+1) + ".json"
                 name = "CurrentQ.json"
                 self.saveTable(Q, name)
-                eps -= 1.2*(0.9-0.1)/300
+                self.plotLearning(episode, data)
+                eps -= (0.9-0.1)/duration
 
 
     def callback(self, dist):
