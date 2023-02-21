@@ -15,8 +15,8 @@ warnings.filterwarnings("ignore")
 
 class Learning():
     twists = {
-        "turn right": [0.2, 0.95],
-        "turn left": [0.2, -0.95],
+        "turn right": [0.2, -0.95],
+        "turn left": [0.2, 0.95],
         "forward": [0.25, 0]
     }
 
@@ -167,7 +167,7 @@ class Learning():
         
     def calculateReward(self, state, mmin, fmin):
         #state: [front right, front left, left, back left]
-        reward = -1
+        reward = 0
         #min([state[1], state[2], state[3]]) < mmin or min([state[1], state[2], state[3]]) >= fmin or 
         if min([state[0], state[1]]) < mmin:
             reward += -15

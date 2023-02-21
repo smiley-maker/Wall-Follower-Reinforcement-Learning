@@ -15,23 +15,28 @@ class Move():
     #The first entry gives the velocity in the x direction, and the second is the 
     #angular velocity around z. 
     twists = {
-        "right": [0.2, 0.95],
-        "left": [0.2, -0.95],
+        "right": [0.2, -0.95],
+        "left": [0.2, 0.95],
         "forward": [0.25, 0]
     }
     scan = None
     ranges = None
 
-    def __init__(self):
+    mode = "train"
+
+    def __init__(self, mode="train"):
         """
         Constructor initializing the node, services, publisher, and subscriber. 
         """        
+        Move.mode = mode
         self.init_node()
         self.init_services()
         self.init_publisher()
         self.init_subscriber()
-#        print("hi")
-        self.learning()
+        if Move.mode == "train":
+            self.learning()
+        elif Move.mode == "test":
+            self.runFile()
     
     def init_services(self):
         """
@@ -144,9 +149,9 @@ class Move():
     def calculateReward(self, state, mmin, fmin):
         reward = 0
         if state[1] < mmin or state[1] >= fmin or state[0] < mmin or state[2] < mmin:
-            reward = -5
+            reward += -5
         else: 
-            reward = 1
+            reward += 1
         return reward
 
     def rewardState(self, ranges, mmin, fmin):
@@ -164,7 +169,7 @@ class Move():
 
         learning.plot(numEpisodes, data)
 
-        plt.savefig("learning.pdf")
+        plt.savefig("learning2.pdf")
         plt.close()
         
  
@@ -235,6 +240,7 @@ class Move():
                         correct += 1
     
             self.publishTwist(self.twists[action])
+            rospy.sleep(0.4)
         return val, total
                     
     def learning(self):
@@ -253,7 +259,46 @@ class Move():
                 name = "CurrentQ.json"
                 self.saveTable(Q, name)
                 self.plotLearning(episode, data)
-                eps -= (0.9-0.1)/duration
+                eps -= 1.2*(0.9-0.1)/duration
+    
+
+    def runFile(self):
+        steps = 0
+        while not Move.scan and not rospy.is_shutdown():
+            self.reset_world()
+            rospy.sleep(0.1)
+        Q = self.getTable("CurrentQ.json")
+        print("table loaded")
+        termination = False
+        Move.scan = None
+        
+        reward, state = self.rewardState(Move.ranges, 0.5, 1.1)
+
+        action = max(Q[state], key=Q[state].get)
+   
+        self.publishTwist(Move.twists[action])
+
+        while not termination and not rospy.is_shutdown():
+            rospy.sleep(0.5)
+            steps += 1
+
+            reward, newState = self.rewardState(Move.ranges, 0.5, 1.1)
+
+            for d in Move.ranges:
+                if not rospy.is_shutdown():
+                    if d < 0.2:
+                        termination = True
+            if steps >= 800:
+    #            reward += 100
+                termination = True            
+
+            state = newState
+
+            action = max(Q[state], key=Q[state].get)
+            print(action)
+    
+            self.publishTwist(self.twists[action])
+
 
 
     def callback(self, dist):
@@ -269,5 +314,6 @@ class Move():
         Move.ranges = dist.ranges
 
 
+
 if __name__ == "__main__":
-    s = Move()
+    s = Move(mode="test")
