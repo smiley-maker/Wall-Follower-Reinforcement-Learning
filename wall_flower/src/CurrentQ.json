@@ -1,58 +1,58 @@
 {
     "forward: close, right: close, left: close": {
-        "forward": -6353.909687719348,
+        "forward": -6533.492397087767,
         "right": -6632.481954827718,
         "left": -6787.345542177299
     },
     "forward: close, right: close, left: medium": {
-        "forward": -3548.8249170381664,
-        "right": -3749.6000505931083,
+        "forward": -3462.5601695270216,
+        "right": -3819.613723674152,
         "left": -3882.2133648904282
     },
     "forward: close, right: close, left: far": {
-        "forward": -1673.5298030554889,
+        "forward": -1754.7945669426117,
         "right": -1758.7618913661975,
         "left": -1700.4762780862056
     },
     "forward: close, right: medium, left: close": {
         "forward": -3885.2952037980144,
-        "right": -3364.8827187273687,
+        "right": -2656.6138282840357,
         "left": -5067.577544244266
     },
     "forward: close, right: medium, left: medium": {
         "forward": -1507.727075265997,
-        "right": -1316.4087837421175,
+        "right": -1397.7389536477442,
         "left": -1453.5560634765936
     },
     "forward: close, right: medium, left: far": {
-        "forward": -1966.3512110778233,
+        "forward": -2103.8102666026766,
         "right": -982.5902259040602,
-        "left": -351.6962685218809
+        "left": -341.34538046622447
     },
     "forward: close, right: far, left: close": {
         "forward": -2761.1738677635876,
-        "right": -2731.4684455327597,
+        "right": -2461.6545536765557,
         "left": -3225.887122219728
     },
     "forward: close, right: far, left: medium": {
         "forward": -621.3432831896969,
         "right": -599.7916054688017,
-        "left": -550.3234704287274
+        "left": -686.6939145731478
     },
     "forward: close, right: far, left: far": {
         "forward": -861.6877283215422,
-        "right": -835.6732343485974,
-        "left": -640.9356284881047
+        "right": -1010.8030373181394,
+        "left": -1133.5973984403677
     },
     "forward: medium, right: close, left: close": {
         "forward": -3.5550766544146137,
         "right": -365.0185081384977,
-        "left": -0.2
+        "left": -248.79774419267164
     },
     "forward: medium, right: close, left: medium": {
-        "forward": -484.03298322117655,
+        "forward": -552.9767711129431,
         "right": -435.56965992701026,
-        "left": -265.88689500082137
+        "left": -250.56697950627284
     },
     "forward: medium, right: close, left: far": {
         "forward": -60.01295339629898,
@@ -60,33 +60,33 @@
         "left": -44.37637557754118
     },
     "forward: medium, right: medium, left: close": {
-        "forward": -935.0756006625359,
-        "right": -157.02795918655931,
+        "forward": -852.4442390250497,
+        "right": -127.91926774390409,
         "left": -1031.1344624765381
     },
     "forward: medium, right: medium, left: medium": {
         "forward": -442.52179707081183,
-        "right": -578.800397142066,
-        "left": -358.8299117613818
+        "right": -580.1528065371242,
+        "left": -143.29899308032128
     },
     "forward: medium, right: medium, left: far": {
-        "forward": -41.882550803797805,
-        "right": -93.20344199076408,
-        "left": -28.779154530359154
+        "forward": -268.95876046921285,
+        "right": -104.9673977806904,
+        "left": -33.66192295324297
     },
     "forward: medium, right: far, left: close": {
         "forward": -288.22005314721736,
-        "right": -91.53552655582408,
+        "right": -55.51111154204412,
         "left": -314.4380496843115
     },
     "forward: medium, right: far, left: medium": {
-        "forward": -312.8018939156154,
-        "right": -282.593279634541,
-        "left": -291.1717967410403
+        "forward": -273.66166342017993,
+        "right": -77.14081461591239,
+        "left": -256.9423797502154
     },
     "forward: medium, right: far, left: far": {
         "forward": -62.09039131927918,
-        "right": -21.120012199558207,
+        "right": -26.114056667062044,
         "left": -80.44019821362913
     },
     "forward: far, right: close, left: close": {
@@ -101,37 +101,37 @@
     },
     "forward: far, right: close, left: far": {
         "forward": -137.61309381367812,
-        "right": -124.45990991113135,
-        "left": -181.3626709374822
+        "right": -133.43877240872496,
+        "left": -171.35383292531944
     },
     "forward: far, right: medium, left: close": {
         "forward": -48.12534945569351,
-        "right": -38.21282277216788,
-        "left": -43.56814231762347
+        "right": -33.19157805178301,
+        "left": -48.551333854445005
     },
     "forward: far, right: medium, left: medium": {
-        "forward": -38.724710387095875,
-        "right": -48.94289649623999,
-        "left": -47.707921753312576
+        "forward": -21.60824349604915,
+        "right": -42.630340316835834,
+        "left": -44.48562027822483
     },
     "forward: far, right: medium, left: far": {
-        "forward": -40.02138934543717,
-        "right": -14.786685139632816,
-        "left": -13.716037902938325
+        "forward": -39.47402252677343,
+        "right": -39.27791174688945,
+        "left": -18.03760572557061
     },
     "forward: far, right: far, left: close": {
-        "forward": -196.91257347533417,
-        "right": -72.00971514497195,
-        "left": -162.00382512886097
+        "forward": -179.07538556779983,
+        "right": -264.2028354047751,
+        "left": -195.89594334878367
     },
     "forward: far, right: far, left: medium": {
-        "forward": -26.486706285701004,
-        "right": -35.046654159957086,
-        "left": -53.31045959978764
+        "forward": -27.069139359260408,
+        "right": -46.735670379434545,
+        "left": -49.55048741591239
     },
     "forward: far, right: far, left: far": {
-        "forward": -9.936372850705098,
-        "right": -11.201049189761637,
-        "left": -11.311280644075804
+        "forward": -12.141090439451027,
+        "right": -12.565502670366875,
+        "left": -12.033554391737045
     }
 }
