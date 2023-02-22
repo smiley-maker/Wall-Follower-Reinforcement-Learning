@@ -5,6 +5,8 @@ import rospy
 from sensor_msgs.msg import LaserScan
 from geometry_msgs.msg import Twist
 from std_srvs.srv import Empty
+from gazebo_msgs.msg import ModelState
+from gazebo_msgs.srv import SetModelState
 import matplotlib.pyplot as plt
 import json
 import numpy as np
@@ -24,11 +26,14 @@ class Move():
 
     mode = "train"
 
+    startPoses = []
+
     def __init__(self, mode="train"):
         """
         Constructor initializing the node, services, publisher, and subscriber. 
         """        
         Move.mode = mode
+        Move.startPoses.append(self.makeModelState())
         self.init_node()
         self.init_services()
         self.init_publisher()
@@ -45,6 +50,12 @@ class Move():
         """        
         rospy.wait_for_service("/gazebo/reset_world")
         self.reset_world = rospy.ServiceProxy("/gazebo/reset_world", Empty)
+        rospy.wait_for_service("/gazebo/set_model_state")
+        self.set_state = rospy.ServiceProxy("/gazebo/set_model_state", SetModelState)
+        rospy.wait_for_service("gazebo/pause_physics")
+        self.pause_physics = rospy.ServiceProxy("/gazebo/pause_physics", Empty)
+        rospy.wait_for_service("/gazebo/unpause_physics")
+        self.unpause_physics = rospy.ServiceProxy("/gazebo/unpause_physics", Empty)
     
     def init_node(self):
         #Initializes a node for this project
@@ -73,7 +84,18 @@ class Move():
         t.angular.y = 0
         t.angular.z = twister[1]
         self.pub.publish(t)
-
+    
+    def makeModelState(self):
+        model_msg = ModelState()
+        model_msg.model_name = "turtlebot3_waffle"
+        model_msg.pose.position.y = 1.5
+        model_msg.pose.position.x = -2
+        model_msg.pose.position.z = 0
+        model_msg.pose.orientation.x = 0
+        model_msg.pose.orientation.y = 0
+        model_msg.pose.orientation.z = 0
+        model_msg.pose.orientation.w = 1
+        return model_msg
     
     def splitRange(self, ranges):
         """
@@ -115,7 +137,7 @@ class Move():
             json.dump(table, f, indent=4)
     
     
-    def updateQValue(self, reward, Q, old_state, new_state, action, alpha=0.2, gamma=0.8):
+    def updateQValue(self, reward, Q, old_state, new_state, action, alpha=0.1, gamma=0.8):
         temp_diff = reward + gamma*(max(Q[new_state].values()))
         newQ = Q[old_state][action] + alpha*(temp_diff -Q[old_state][action])
         Q[old_state][action] = newQ
@@ -147,9 +169,9 @@ class Move():
         return res
 
     def calculateReward(self, state, mmin, fmin):
-        reward = 0
+        reward = -1
         if state[1] < mmin or state[1] >= fmin or state[0] < mmin or state[2] < mmin:
-            reward += -5
+            reward += -1
         else: 
             reward += 1
         return reward
@@ -163,8 +185,6 @@ class Move():
     def plotLearning(self, episodes, data):
         fig, (learning,_) = plt.subplots(2, 1)
 
-        print(episodes)
-
         numEpisodes = range(len(data))
 
         learning.plot(numEpisodes, data)
@@ -174,7 +194,13 @@ class Move():
         
  
     def episode(self, Q, eps, num):
-        self.reset_world()
+#        self.reset_world()
+        s = self.makeModelState()
+        try:
+            self.set_state(s)
+        except:
+            print("didn't work")
+        
 
         steps = 0
         counter = 0
@@ -198,6 +224,7 @@ class Move():
 
         while not termination and not rospy.is_shutdown():
             rospy.sleep(0.1)
+            self.pause_physics()
             steps += 1
 
             reward, newState = self.rewardState(Move.ranges, 0.5, 1.1)
@@ -238,7 +265,8 @@ class Move():
                     total += 1
                     if action == "right":
                         correct += 1
-    
+            
+            self.unpause_physics()
             self.publishTwist(self.twists[action])
             rospy.sleep(0.4)
         return val, total
@@ -248,7 +276,7 @@ class Move():
         duration = 300
         data = []
         for episode in range(duration):
-            self.reset_world()
+#            self.reset_world()
             if not rospy.is_shutdown():
                 print(episode)
                 Q = self.getTable("CurrentQ.json")
@@ -316,4 +344,4 @@ class Move():
 
 
 if __name__ == "__main__":
-    s = Move(mode="test")
+    s = Move(mode="train")
