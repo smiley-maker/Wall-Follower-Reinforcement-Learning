@@ -25,15 +25,14 @@ class Move():
     ranges = None
 
     mode = "train"
-
-    startPoses = []
+    #(y,x,w)
+    startPoses = [(-1.75, 1.8, 0), (1.5, -1, 0), (1.5, 1, 1)]
 
     def __init__(self, mode="train"):
         """
         Constructor initializing the node, services, publisher, and subscriber. 
         """        
         Move.mode = mode
-        Move.startPoses.append(self.makeModelState())
         self.init_node()
         self.init_services()
         self.init_publisher()
@@ -85,16 +84,16 @@ class Move():
         t.angular.z = twister[1]
         self.pub.publish(t)
     
-    def makeModelState(self):
+    def makeModelState(self, pos):
         model_msg = ModelState()
         model_msg.model_name = "turtlebot3_waffle"
-        model_msg.pose.position.y = 1.5
-        model_msg.pose.position.x = -2
+        model_msg.pose.position.x = pos[0]
+        model_msg.pose.position.y = pos[1]
         model_msg.pose.position.z = 0
         model_msg.pose.orientation.x = 0
         model_msg.pose.orientation.y = 0
         model_msg.pose.orientation.z = 0
-        model_msg.pose.orientation.w = 1
+        model_msg.pose.orientation.w = pos[2]
         return model_msg
     
     def splitRange(self, ranges):
@@ -195,9 +194,9 @@ class Move():
  
     def episode(self, Q, eps, num):
 #        self.reset_world()
-        s = self.makeModelState()
+        options = [self.makeModelState(p) for p in self.startPoses]
         try:
-            self.set_state(s)
+            self.set_state(np.random.choice(options))
         except:
             print("didn't work")
         
@@ -234,10 +233,8 @@ class Move():
             else:
                 counter = 0
             if counter >= 200:
-                reward -= 50
                 if total:
                     val = correct/total
-                    print(val)
                 termination = True
             for d in Move.ranges:
                 if not rospy.is_shutdown():
@@ -251,7 +248,6 @@ class Move():
     #            reward += 100
                 if total:
                     val = correct/total
-                    print(val)
                 termination = True            
             self.updateQValue(reward, Q, state, newState, action)
 
@@ -275,6 +271,7 @@ class Move():
         eps = 0.9
         duration = 300
         data = []
+        dataEpisodes = 0
         for episode in range(duration):
 #            self.reset_world()
             if not rospy.is_shutdown():
@@ -282,18 +279,25 @@ class Move():
                 Q = self.getTable("CurrentQ.json")
 #                Q = self.getTable("CurrentQ_" + str(episode) + ".json")
                 x, total = self.episode(Q, eps, episode)
-                data.append(x)
+                if total > 1:
+                    data.append(x)
+                    dataEpisodes += 1
+                    self.plotLearning(dataEpisodes, data)
  #               name = "CurrentQ_" + str(episode+1) + ".json"
                 name = "CurrentQ.json"
                 self.saveTable(Q, name)
-                self.plotLearning(episode, data)
+#                self.plotLearning(dataEpisodes, data)
                 eps -= 1.2*(0.9-0.1)/duration
     
 
     def runFile(self):
         steps = 0
         while not Move.scan and not rospy.is_shutdown():
-            self.reset_world()
+            options = [self.makeModelState(p) for p in self.startPoses]
+            try:
+                self.set_state(np.random.choice(options))
+            except:
+                print("didn't work")
             rospy.sleep(0.1)
         Q = self.getTable("CurrentQ.json")
         print("table loaded")
@@ -344,4 +348,4 @@ class Move():
 
 
 if __name__ == "__main__":
-    s = Move(mode="train")
+    s = Move(mode="test")
