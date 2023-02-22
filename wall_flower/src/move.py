@@ -7,6 +7,8 @@ from geometry_msgs.msg import Twist
 from std_srvs.srv import Empty
 from gazebo_msgs.msg import ModelState
 from gazebo_msgs.srv import SetModelState
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import json
 import numpy as np
@@ -136,7 +138,7 @@ class Move():
             json.dump(table, f, indent=4)
     
     
-    def updateQValue(self, reward, Q, old_state, new_state, action, alpha=0.1, gamma=0.8):
+    def updateQValue(self, reward, Q, old_state, new_state, action, alpha=0.1, gamma=0.7):
         temp_diff = reward + gamma*(max(Q[new_state].values()))
         newQ = Q[old_state][action] + alpha*(temp_diff -Q[old_state][action])
         Q[old_state][action] = newQ
@@ -151,27 +153,36 @@ class Move():
         elif fmin <= state[0] <= 4:
             res += "forward: far, "
         
-        if cmin <= state[1] < mmin:
+        if cmin <= state[2] < mmin:
             res += "right: close, "
-        elif mmin <= state[1] < fmin:
+        elif mmin <= state[2] < fmin:
             res += "right: medium, "
-        elif fmin <= state[1] <= 4:
+        elif fmin <= state[2] <= 4:
             res += "right: far, "
 
-        if cmin <= state[2] < mmin:
+        if cmin <= state[1] < mmin:
             res += "left: close"
-        elif mmin <= state[2] < fmin:
+        elif mmin <= state[1] < fmin:
             res += "left: medium"
-        elif fmin <= state[2] <= 4:
+        elif fmin <= state[1] <= 4:
             res += "left: far"
         
         return res
 
     def calculateReward(self, state, mmin, fmin):
         reward = -1
-        if state[1] < mmin or state[1] >= fmin or state[0] < mmin or state[2] < mmin:
-            reward += -1
-        else: 
+   #     if state[1] < mmin or state[1] >= fmin or state[0] < mmin or state[2] < mmin:
+  #          reward += -1
+ #       else: 
+#            reward += 1
+        #right, front
+        if state[2] < mmin or state[0] < mmin:
+            reward -= 1
+        if state[1] >= ffmin:
+            reward -= 5
+        elif state[1] < mmin:
+            reward -= 2
+        else:
             reward += 1
         return reward
 
@@ -238,7 +249,7 @@ class Move():
                 termination = True
             for d in Move.ranges:
                 if not rospy.is_shutdown():
-                    if d < 0.2:
+                    if d < 0.2: 
                         reward -= 100
                         if total:
                             val = correct/total
