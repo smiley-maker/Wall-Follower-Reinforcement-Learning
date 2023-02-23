@@ -113,8 +113,8 @@ class Move():
         #y is a list containing lists of individual data points. 
         fig, axs = plt.subplots(num_plots)
         fig.suptitle("Learning")
-        for i in range(len(axs)):
-            axs[i].plot(x[i], y[i])
+        for i in range(len(x)):
+            axs[0].plot(x[i], y[i])
         
         plt.savefig("Learning_Rates.pdf")
         plt.close()
@@ -184,6 +184,19 @@ class Move():
         state = self.getStringState(state, 0, mmin, fmin)
         return reward, state
     
+    def plotLearning(self, episodes, data, optionalData=None):
+        fig, (learning, ax) = plt.subplots(2, 1)
+
+        numEpisodes = range(len(data))
+
+        learning.plot(numEpisodes, data)
+        if optionalData:
+            ax.plot(episodes, optionalData)
+
+        plt.savefig("Learning_Rates.pdf")
+        plt.close()
+
+    
     
     def epoch(self, Q, eps):
         steps, counter, total, correct, val = 0, 0, 0, 0, 0
@@ -247,7 +260,7 @@ class Move():
             
             else:
                 new_action = max(Q[newState], key=Q[newState].get)
-                if state == "forward: close, right: far, left: close" or state == "forward: medium, right: far, left: close" or state=="forward: medium, right: far, left: medium":
+                if state == "forward: close, left: medium" or state == "forward: medium, left: close" or state=="forward: medium, left: medium":
                     total += 1
                     if new_action == "right":
                         correct += 1
@@ -264,7 +277,7 @@ class Move():
 
     def learn(self):
         eps = 0.9
-        duration = 500
+        duration = 400
         data = []
         dataEpisodes = 0
 
@@ -273,18 +286,17 @@ class Move():
 
                 rospy.loginfo("Episode #" + str(e))
 
-                Q = self.get_table("minimalQ.json")
+                Q = self.get_table("minimalQ2.json")
                 x, total = self.epoch(Q, eps)
                 if total > 2:
                     data.append(x)
                     dataEpisodes += 1
-                    self.plot_learning([dataEpisodes], [data])
-                
-                self.save_table(Q, "minimalQ.json")
+                    self.plotLearning(dataEpisodes, data)
+                self.save_table(Q, "minimalQ2.json")
                # if episode%50 == 0:
                 #    rospy.loginfo("Demo starting....")
                  #   self.runFile()
-                  #  rospy.loginfo("Demo complete")
+                  #  rospy.loginfos"Demo complete")
                 
                 eps -= 1.2*(0.8)/duration
                 rospy.sleep(0.1)
@@ -295,7 +307,7 @@ class Move():
         termination = False
         Move.scan = None
 
-        Q = self.get_table("minimalQ.json")
+        Q = self.get_table("minimalQ2.json")
         rospy.loginfo("Table loaded")
 
         reward, state = self.rewardState(0.5, 0.75)
@@ -342,4 +354,4 @@ class Move():
 
 
 if __name__ == "__main__":
-    m = Move(mode="test")
+    m = Move(mode="train")

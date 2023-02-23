@@ -302,7 +302,7 @@ class Move():
                     
     def learning(self):
         eps = 0.9
-        duration = 300
+        duration = 800
         data = []
         dataEpisodes = 0
         for episode in range(duration):
@@ -387,4 +387,4 @@ class Move():
 
 
 if __name__ == "__main__":
-    s = Move(mode="test")
+    s = Move(mode="train")
