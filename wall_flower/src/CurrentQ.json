@@ -1,137 +1,137 @@
 {
     "forward: close, right: close, left: close": {
-        "forward": -0.30000000000000004,
-        "right": -1.5,
-        "left": 0
+        "forward": -12.142826086408549,
+        "right": -10.171130914857017,
+        "left": -12.217903139920471
     },
     "forward: close, right: close, left: medium": {
-        "forward": -4.722882,
-        "right": -2.7150000000000003,
-        "left": -2.7445500000000003
+        "forward": -5.408001981775599,
+        "right": -6.31820605755227,
+        "left": -6.435784527751175
     },
     "forward: close, right: close, left: far": {
-        "forward": 0,
-        "right": 0,
-        "left": 0
+        "forward": -8.06666086621994,
+        "right": -5.646384659317098,
+        "left": -7.269432069562716
     },
     "forward: close, right: medium, left: close": {
-        "forward": -5.7812776773,
-        "right": -5.204364429,
-        "left": -3.7102810890000004
+        "forward": -6.996483257793633,
+        "right": -7.18837148157773,
+        "left": -5.215009151418692
     },
     "forward: close, right: medium, left: medium": {
-        "forward": 0,
-        "right": -1.5,
-        "left": -3.9435000000000002
+        "forward": -3.3671494526980057,
+        "right": -3.81776091301704,
+        "left": -3.8527813217164324
     },
     "forward: close, right: medium, left: far": {
-        "forward": 0,
-        "right": 0,
-        "left": 0
+        "forward": -0.4581271206521935,
+        "right": -0.8056981984043894,
+        "left": -0.2908317533243912
     },
     "forward: close, right: far, left: close": {
-        "forward": -5.318580237,
-        "right": -2.955,
-        "left": -3.3370830000000002
+        "forward": -6.106900320290526,
+        "right": -5.737962463243133,
+        "left": -5.6691472082836
     },
     "forward: close, right: far, left: medium": {
-        "forward": 0,
-        "right": 0,
-        "left": 0
+        "forward": -1.554531346029484,
+        "right": -1.6885031571140257,
+        "left": -1.4089345842316192
     },
     "forward: close, right: far, left: far": {
-        "forward": 0,
-        "right": 0,
-        "left": 0
+        "forward": -0.7556546365556409,
+        "right": -1.0637488002254065,
+        "left": -0.6754223064661733
     },
     "forward: medium, right: close, left: close": {
-        "forward": 0,
-        "right": -0.30000000000000004,
-        "left": -1.5
+        "forward": -2.202947101121108,
+        "right": -2.628695020107113,
+        "left": -2.9197619617579624
     },
     "forward: medium, right: close, left: medium": {
-        "forward": -0.0945,
-        "right": 0,
-        "left": -1.215
+        "forward": -3.4628627493636093,
+        "right": -2.9844022212631165,
+        "left": -2.818900351053239
     },
     "forward: medium, right: close, left: far": {
-        "forward": -2.04,
-        "right": -2.7538500000000004,
-        "left": -2.04
+        "forward": -2.6264944697550363,
+        "right": -2.5924065316932237,
+        "left": -3.612037784000036
     },
     "forward: medium, right: medium, left: close": {
-        "forward": -1.7615100000000001,
-        "right": -0.2,
-        "left": -1.5
+        "forward": -4.075475388267667,
+        "right": -4.298202660603533,
+        "left": -3.4138261851833915
     },
     "forward: medium, right: medium, left: medium": {
-        "forward": -0.4186559561543623,
-        "right": 0.5062451007355429,
-        "left": -0.5785231487533002
+        "forward": -2.627350911043105,
+        "right": -2.0440088877285625,
+        "left": -2.035773288201236
     },
     "forward: medium, right: medium, left: far": {
-        "forward": -4.248681104014352,
-        "right": -3.9285787266960415,
-        "left": -3.629516400948714
+        "forward": -2.3378961269796252,
+        "right": -2.3075246160963987,
+        "left": -2.308734697530828
     },
     "forward: medium, right: far, left: close": {
-        "forward": -6.117173174957762,
-        "right": -6.828362721083682,
-        "left": -5.380318246890995
+        "forward": -3.770326134260483,
+        "right": -4.2938437602187145,
+        "left": -3.6150437230430588
     },
     "forward: medium, right: far, left: medium": {
-        "forward": -0.7621693905913518,
-        "right": 1.2858572306890832,
-        "left": 0.885571991972557
+        "forward": -1.711042489622938,
+        "right": -1.3658075009281148,
+        "left": -1.4734665241711389
     },
     "forward: medium, right: far, left: far": {
-        "forward": -0.6257957895945311,
-        "right": -1.8655953046415537,
-        "left": -0.5258490375032776
+        "forward": -1.7833492687202663,
+        "right": -1.6937029819501144,
+        "left": -1.7106942453534228
     },
     "forward: far, right: close, left: close": {
-        "forward": 0,
-        "right": 0,
+        "forward": -0.2773,
+        "right": -0.3294506162169748,
         "left": 0
     },
     "forward: far, right: close, left: medium": {
-        "forward": 0,
-        "right": 0,
-        "left": 0
+        "forward": -1.631309258479213,
+        "right": -1.7313060995837344,
+        "left": -1.6595357800035617
     },
     "forward: far, right: close, left: far": {
-        "forward": 0,
-        "right": 0,
-        "left": 0
+        "forward": -2.872998104549684,
+        "right": -2.7650537989515054,
+        "left": -2.875301875603387
     },
     "forward: far, right: medium, left: close": {
-        "forward": 0,
-        "right": 0,
-        "left": 0
+        "forward": -2.421643753841448,
+        "right": -2.48892163671935,
+        "left": -2.522564797174947
     },
     "forward: far, right: medium, left: medium": {
-        "forward": 0,
-        "right": 0.11424343200765155,
-        "left": 0
+        "forward": -0.124108958094063,
+        "right": -0.22449472305354276,
+        "left": -0.32148059900794973
     },
     "forward: far, right: medium, left: far": {
-        "forward": -2.581862365908032,
-        "right": -3.483948348075372,
-        "left": -2.787062300443949
+        "forward": -2.843598172816848,
+        "right": -2.847698268117196,
+        "left": -2.8358843254313126
     },
     "forward: far, right: far, left: close": {
-        "forward": -2.1413622772823695,
-        "right": -1.6483526,
-        "left": -0.58218
+        "forward": -4.460087383915884,
+        "right": -3.176178768850445,
+        "left": -3.1243789664154917
     },
     "forward: far, right: far, left: medium": {
-        "forward": 2.429991143938895,
-        "right": 1.8510536360184002,
-        "left": 2.3023014683909406
+        "forward": -0.6811176834164543,
+        "right": -0.5017289076522542,
+        "left": -0.6037314725041204
     },
     "forward: far, right: far, left: far": {
-        "forward": -14.875101031035458,
-        "right": -13.381981831702653,
-        "left": -14.123606218475265
+        "forward": -3.2087355777372077,
+        "right": -3.2097130087360606,
+        "left": -2.5286980176597194
     }
 }

@@ -13,14 +13,15 @@ import matplotlib.pyplot as plt
 import json
 import numpy as np
 import random
+import math
 
 class Move():
     #Defines the possible action set and how they will be represented using twists. 
     #The first entry gives the velocity in the x direction, and the second is the 
     #angular velocity around z. 
     twists = {
-        "right": [0.2, -0.95],
-        "left": [0.2, 0.95],
+        "right": [0.2, 0.95],
+        "left": [0.2, -0.95],
         "forward": [0.25, 0]
     }
     scan = None
@@ -177,23 +178,23 @@ class Move():
 
     def calculateReward(self, state, mmin, fmin):
         reward = 0
-   #     if state[1] < mmin or state[1] >= fmin or state[0] < mmin or state[2] < mmin:
-  #          reward = -1
- #       else:
-#            reward = 0
+        if state[1] < mmin or state[1] >= fmin or state[0] < mmin or state[2] < mmin:
+            reward = -1
+        else:
+            reward = 0
    #     if state[1] < mmin or state[1] >= fmin or state[0] < mmin or state[2] < mmin:
   #          reward += -1
  #       else: 
 #            reward += 1
         #right, front
-        if state[2] < mmin or state[0] < mmin:
-            reward -= 1
-        if state[1] >= fmin:
-            reward -= 5
-        elif state[1] < mmin:
-            reward -= 2
-        else:
-            reward += 1
+#        if state[2] < mmin or state[0] < mmin:
+ #           reward -= 1
+  #      if state[1] >= fmin:
+   #         reward -= 5
+    #    elif state[1] < mmin:
+     #       reward -= 2
+      #  else:
+       #     reward += 1
         return reward
 
     def rewardState(self, ranges, mmin, fmin):
@@ -215,7 +216,7 @@ class Move():
         plt.close()
         
  
-    def episode(self, Q, eps, num):
+    def episode(self, Q, eps):
 #        self.reset_world()
         options = [self.makeModelState(p) for p in self.startPoses]
         try:
@@ -229,6 +230,7 @@ class Move():
         total = 0
         correct = 0
         val = 0
+        T = 10
         termination = False
         Move.scan = None
 
@@ -236,7 +238,7 @@ class Move():
             self.publishTwist([0,0])
             rospy.sleep(0.1)
         
-        reward, state = self.rewardState(Move.ranges, 0.25, 0.4)
+        reward, state = self.rewardState(Move.ranges, 0.5, 0.7)
 
         if random.random() < eps:
             action = np.random.choice(list(Q[state].keys()))
@@ -250,7 +252,7 @@ class Move():
             self.pause_physics()
             steps += 1
 
-            reward, newState = self.rewardState(Move.ranges, 0.25, 0.4)
+            reward, newState = self.rewardState(Move.ranges, 0.5, 0.7 )
 
             if "left: far" in state:
                 counter += 1
@@ -274,21 +276,27 @@ class Move():
                     val = correct/total
                 termination = True     
 
-            self.updateQValue(reward, Q, state, newState, action)
+           # self.updateQValue(reward, Q, state, newState, action)
 
-            state = newState
+            
 
             if random.random() < eps:
-                action = np.random.choice(list(Q[state].keys()))
+                s = sum([math.exp(a/T) for a in Q[newState].values()])
+                p = [math.exp(a/T)/s for a in Q[newState].values()]
+                new_action = np.random.choice(list(Q[newState].keys()), p=p)
             else:
-                action = max(Q[state], key=Q[state].get)
+                new_action = max(Q[newState], key=Q[newState].get)
                 if state == "forward: close, right: far, left: close" or state == "forward: medium, right: far, left: close" or state=="forward: medium, right: far, left: medium":
                     total += 1
-                    if action == "right":
+                    if new_action == "right":
                         correct += 1
             
             self.unpause_physics()
-            self.publishTwist(self.twists[action])
+            self.publishTwist(self.twists[new_action])
+            self.updateQValue(reward, Q, state, newState, action, new_action=new_action, strategy="sarsa")
+            action = new_action
+            state = newState
+
           #  rospy.sleep(0.4)
         return val, total, reward
                     
@@ -303,7 +311,7 @@ class Move():
                 print(episode)
                 Q = self.getTable("CurrentQ.json")
 #                Q = self.getTable("CurrentQ_" + str(episode) + ".json")
-                x, total, reward = self.episode(Q, eps, episode)
+                x, total, reward = self.episode(Q, eps)
                 if total > 2:
                     data.append(x)
                     dataEpisodes += 1
@@ -311,9 +319,9 @@ class Move():
  #               name = "CurrentQ_" + str(episode+1) + ".json"
                 name = "CurrentQ.json"
                 self.saveTable(Q, name)
-                if episode % 20 == 0:
-                    print("Running demo....")
-                    self.runFile()
+            #    if episode % 20 == 0:
+               #     print("Running demo....")
+                #    self.runFile()
 #                self.plotLearning(dataEpisodes, data)
                 eps -= (0.9-0.1)/duration
     
@@ -362,6 +370,8 @@ class Move():
 
 
 
+
+
     def callback(self, dist):
         """
         Callback for the subscriber. Generates decisions, thresholds, states, and
@@ -377,4 +387,4 @@ class Move():
 
 
 if __name__ == "__main__":
-    s = Move(mode="train")
+    s = Move(mode="test")
