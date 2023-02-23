@@ -342,4 +342,4 @@ class Move():
 
 
 if __name__ == "__main__":
-    m = Move(mode="train")
+    m = Move(mode="test")
