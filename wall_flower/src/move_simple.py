@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 import json
 import numpy as np
 import random
+from scipy.signal import butter, filtfilt
 import math
 
 class Move():
@@ -109,14 +110,26 @@ class Move():
         return model_msg
     
 
+    def learningFilter(self, data, cutoff, fs, order):
+        T = 5
+        nyq = 0.5*fs
+
+        normal_cutoff = cutoff/nyq
+        b, a = butter(order, normal_cutoff, btype='low', analog=False)
+        y = filtfilt(b, a, data)
+        return y
+    
+
     def plot_learning(self, x, y, num_plots):
+        print(x)
+        print(y)
         #y is a list containing lists of individual data points. 
         fig, axs = plt.subplots(num_plots)
         fig.suptitle("Learning")
         for i in range(len(x)):
             axs[0].plot(x[i], y[i])
         
-        plt.savefig("Learning_Rates.pdf")
+        plt.savefig("Learning_Rates2.pdf")
         plt.close()
         
 
@@ -184,7 +197,7 @@ class Move():
         state = self.getStringState(state, 0, mmin, fmin)
         return reward, state
     
-    def plotLearning(self, episodes, data, optionalData=None):
+    def plotLearning(self, episodes, data, optionalData=None, name="Learning_Rates_2.pdf"):
         fig, (learning, ax) = plt.subplots(2, 1)
 
         numEpisodes = range(len(data))
@@ -193,23 +206,34 @@ class Move():
         if optionalData:
             ax.plot(episodes, optionalData)
 
-        plt.savefig("Learning_Rates.pdf")
+        plt.savefig(name)
         plt.close()
 
     
     
     def epoch(self, Q, eps):
         steps, counter, total, correct, val = 0, 0, 0, 0, 0
+        forwardTotal = 0
+        forwardCorrect = 0
+        leftTotal = 0
+        leftCorrect = 0
+        rightVal = 0
+        leftVal = 0
+        frontVal = 0
         T = 10
         termination = False
-        Move.scan = None
 
+
+
+        options = [self.makeModelState(pos) for pos in self.startPoses]
+        self.reset_world()
+        self.set_state(np.random.choice(options))
+        self.publishTwist([0,0])
+
+        Move.scan = None
         while not Move.scan and not rospy.is_shutdown():
             rospy.sleep(0.1)
 
-        options = [self.makeModelState(pos) for pos in self.startPoses]
-        self.set_state(np.random.choice(options))
-        self.publishTwist([0,0])
 
         reward, state = self.rewardState(0.5, 0.75)
 
@@ -221,8 +245,8 @@ class Move():
         self.publishTwist(Move.twists[action])
 
         while not termination and not rospy.is_shutdown():
+           # self.pause_physics()
             rospy.sleep(0.1)
-            self.pause_physics()
 
             steps += 1
 
@@ -232,25 +256,49 @@ class Move():
                 counter += 1
             else:
                 counter = 0
-            if counter == 150:
+            if counter == 300:
                 #counter = 0
                 if total: 
-                    val = correct/total
+                    rightVal = correct/total
+                if leftTotal:
+                    leftVal = leftCorrect/leftTotal
+                if forwardTotal:
+                    frontVal = forwardCorrect/forwardTotal
+                print("counter")
                 termination = True
+            
+            # x = sum(Move.ranges)/len(Move.ranges)
+            # if x < 1.6:
+            #     reward = -15
+            #     if total: rightVal = correct/total
+            #     if leftTotal: leftVal = leftCorrect/leftTotal
+            #     if forwardTotal: frontVal = forwardCorrect/forwardTotal
+            #     print("ranges")
+            #     termination = True
             
             for d in Move.ranges:
                 if not rospy.is_shutdown():
                     if d < 0.2:
                         reward = -15
                         if total:
-                            val = correct/total
-                        
+                            rightVal = correct/total
+                        if leftTotal:
+                            leftVal = leftCorrect/leftTotal
+                        if forwardTotal:
+                            frontVal = forwardCorrect/forwardTotal
+                        print("ranges")
                         termination = True
+                        break
             
-            if steps == 800:
-               # steps = 0
+            if steps >= 800:
+                steps = 0
                 if total:
-                    val = correct/total
+                    rightVal = correct/total
+                if leftTotal:
+                    leftVal = leftCorrect/leftTotal
+                if forwardTotal:
+                    frontVal = forwardCorrect/forwardTotal
+                print("steps")
                 termination = True
             
             if random.random() < eps:
@@ -264,15 +312,30 @@ class Move():
                     total += 1
                     if new_action == "right":
                         correct += 1
+                
+                if state == "forward: far, left: medium" or "forward: medium, left: medium":
+                    forwardTotal += 1
+                    if new_action == "forward":
+                        forwardCorrect += 1
+                
+                if state == "forward: far, left: far" or state == "forward: far, left: medium":
+                    leftTotal += 1
+                    if new_action == "left":
+                        leftCorrect += 1
+                
             
-            self.unpause_physics()
+            #self.unpause_physics()
             self.publishTwist(self.twists[new_action])
-#            self.pause_physics()
+#            rospy.sleep(0.1)
+        #    self.pause_physics()
             self.updateQValue(reward, Q, state, newState, action, new_action=new_action, strategy="sarsa")
             action = new_action
             state = newState
         
-        return val, total
+        print("hi")
+
+        
+        return [(frontVal, forwardTotal), (rightVal, total), (leftVal, leftTotal)]
     
 
     def learn(self):
@@ -280,6 +343,11 @@ class Move():
         duration = 400
         data = []
         dataEpisodes = 0
+        leftData = []
+        leftEpisodes = 0
+        forwardData = []
+        forwardEpisodes = 0
+        appendedData = []
 
         for e in range(duration):
             if not rospy.is_shutdown():
@@ -287,11 +355,27 @@ class Move():
                 rospy.loginfo("Episode #" + str(e))
 
                 Q = self.get_table("minimalQ2.json")
-                x, total = self.epoch(Q, eps)
-                if total > 2:
-                    data.append(x)
+                info = self.epoch(Q, eps)
+                if info[0][1] > 10:
+                    forwardData.append(info[0][0])
+                    forwardEpisodes += 1
+                    appendedData.append(forwardData)
+                if info[1][1] > 10:
+                    data.append(info[1][0])
                     dataEpisodes += 1
-                    self.plotLearning(dataEpisodes, data)
+                    appendedData.append(data)
+                if info[2][1] > 10:
+                    leftData.append(info[2][0])
+                    leftEpisodes += 1
+                    appendedData.append(leftData)
+                
+                self.plotLearning(dataEpisodes, self.learningFilter(data, 0.8, 0.1, 2), name="right-cutoff.png")
+                self.plotLearning(dataEpisodes, data, name="right.png")
+                self.plotLearning(forwardEpisodes, forwardData, name="forward.png")
+                self.plotLearning(leftEpisodes, leftData, name="left.png")
+
+                #self.plot_learning([[forwardEpisodes], [dataEpisodes], [leftEpisodes]], [forwardData, data, leftData], 3)
+                
                 self.save_table(Q, "minimalQ2.json")
                # if episode%50 == 0:
                 #    rospy.loginfo("Demo starting....")
@@ -299,15 +383,18 @@ class Move():
                   #  rospy.loginfos"Demo complete")
                 
                 eps -= 1.2*(0.8)/duration
-                rospy.sleep(0.1)
+              #  rospy.sleep(0.1)
     
 
     def runFile(self):
-        steps = 0
-        termination = False
         Move.scan = None
+        termination = False
+        steps = 0
 
-        Q = self.get_table("minimalQ2.json")
+        while not rospy.is_shutdown() and not Move.scan:
+            rospy.sleep(0.1)
+
+        Q = self.get_table("minimalQ.json")
         rospy.loginfo("Table loaded")
 
         reward, state = self.rewardState(0.5, 0.75)
