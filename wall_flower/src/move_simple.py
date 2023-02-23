@@ -369,7 +369,7 @@ class Move():
                     leftEpisodes += 1
                     appendedData.append(leftData)
                 
-                self.plotLearning(dataEpisodes, self.learningFilter(data, 0.8, 0.1, 2), name="right-cutoff.png")
+                self.plotLearning(dataEpisodes, self.learningFilter(data, 0.04, 0.1, 2), name="right-cutoff.png")
                 self.plotLearning(dataEpisodes, data, name="right.png")
                 self.plotLearning(forwardEpisodes, forwardData, name="forward.png")
                 self.plotLearning(leftEpisodes, leftData, name="left.png")
