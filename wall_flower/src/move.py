@@ -116,9 +116,9 @@ class Move():
                 ranges[i] = 3.6
         front = [r for r in ranges[339:359] if r != "inf"] + [c for c in ranges[0:19] if c != "inf"]
         front = min(front)
-        left = [i for i in ranges[44:134] if i != "inf"]
+        left = [i for i in ranges[20:134] if i != "inf"]
         left = min(left)
-        right = [j for j in ranges[224:314] if j != "inf"]
+        right = [j for j in ranges[224:338] if j != "inf"]
         right = min(right)
         return (front, left, right)
     
@@ -138,9 +138,15 @@ class Move():
             json.dump(table, f, indent=4)
     
     
-    def updateQValue(self, reward, Q, old_state, new_state, action, alpha=0.1, gamma=0.7):
-        temp_diff = reward + gamma*(max(Q[new_state].values()))
-        newQ = Q[old_state][action] + alpha*(temp_diff -Q[old_state][action])
+    def updateQValue(self, reward, Q, old_state, new_state, action, alpha=0.1, gamma=0.7, strategy="sarsa", new_action=None):
+ #       temp_diff = reward + gamma*(max(Q[new_state].values())) #[new action] sarsa, get rid of max and values
+#        newQ = Q[old_state][action] + alpha*(temp_diff -Q[old_state][action])
+
+        if strategy == "sarsa" and new_action:
+            temp_diff = reward + gamma*(Q[new_state][new_action])
+        else:
+            temp_diff = reward + gamma*(max(Q[new_state].values()))
+        newQ = Q[old_state][action] + alpha*(temp_diff-Q[old_state][action])
         Q[old_state][action] = newQ
     
  
@@ -171,23 +177,23 @@ class Move():
 
     def calculateReward(self, state, mmin, fmin):
         reward = 0
-        if state[1] < mmin or state[1] >= fmin or state[0] < mmin or state[2] < mmin:
-            reward = -1
-        else:
-            reward = 1
+   #     if state[1] < mmin or state[1] >= fmin or state[0] < mmin or state[2] < mmin:
+  #          reward = -1
+ #       else:
+#            reward = 0
    #     if state[1] < mmin or state[1] >= fmin or state[0] < mmin or state[2] < mmin:
   #          reward += -1
  #       else: 
 #            reward += 1
         #right, front
-#        if state[2] < mmin or state[0] < mmin:
- #           reward -= 1
-  #      if state[1] >= fmin:
-   #         reward -= 5
-    #    elif state[1] < mmin:
-     #       reward -= 2
-      #  else:
-       #     reward += 1
+        if state[2] < mmin or state[0] < mmin:
+            reward -= 1
+        if state[1] >= fmin:
+            reward -= 5
+        elif state[1] < mmin:
+            reward -= 2
+        else:
+            reward += 1
         return reward
 
     def rewardState(self, ranges, mmin, fmin):
@@ -196,14 +202,16 @@ class Move():
         state = self.getStringState(state, 0, mmin, fmin)
         return reward, state
     
-    def plotLearning(self, episodes, data):
-        fig, (learning,_) = plt.subplots(2, 1)
+    def plotLearning(self, episodes, data, optionalData=None):
+        fig, (learning, ax) = plt.subplots(2, 1)
 
         numEpisodes = range(len(data))
 
         learning.plot(numEpisodes, data)
+        if optionalData:
+            ax.plot(episodes, optionalData)
 
-        plt.savefig("learning2.pdf")
+        plt.savefig("learning3.pdf")
         plt.close()
         
  
@@ -255,7 +263,7 @@ class Move():
             for d in Move.ranges:
                 if not rospy.is_shutdown():
                     if d < 0.2: 
-                        reward -= 15
+                        reward = -15
                         if total:
                             val = correct/total
                           #  print(val)
@@ -282,7 +290,7 @@ class Move():
             self.unpause_physics()
             self.publishTwist(self.twists[action])
           #  rospy.sleep(0.4)
-        return val, total
+        return val, total, reward
                     
     def learning(self):
         eps = 0.9
@@ -295,14 +303,17 @@ class Move():
                 print(episode)
                 Q = self.getTable("CurrentQ.json")
 #                Q = self.getTable("CurrentQ_" + str(episode) + ".json")
-                x, total = self.episode(Q, eps, episode)
-                if total > 1:
+                x, total, reward = self.episode(Q, eps, episode)
+                if total > 2:
                     data.append(x)
                     dataEpisodes += 1
                     self.plotLearning(dataEpisodes, data)
  #               name = "CurrentQ_" + str(episode+1) + ".json"
                 name = "CurrentQ.json"
                 self.saveTable(Q, name)
+                if episode % 20 == 0:
+                    print("Running demo....")
+                    self.runFile()
 #                self.plotLearning(dataEpisodes, data)
                 eps -= (0.9-0.1)/duration
     
@@ -342,6 +353,7 @@ class Move():
                 termination = True            
 
             state = newState
+            print(state)
 
             action = max(Q[state], key=Q[state].get)
             print(action)
