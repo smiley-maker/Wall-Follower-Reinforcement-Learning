@@ -170,20 +170,24 @@ class Move():
         return res
 
     def calculateReward(self, state, mmin, fmin):
-        reward = -1
+        reward = 0
+        if state[1] < mmin or state[1] >= fmin or state[0] < mmin or state[2] < mmin:
+            reward = -1
+        else:
+            reward = 1
    #     if state[1] < mmin or state[1] >= fmin or state[0] < mmin or state[2] < mmin:
   #          reward += -1
  #       else: 
 #            reward += 1
         #right, front
-        if state[2] < mmin or state[0] < mmin:
-            reward -= 1
-        if state[1] >= ffmin:
-            reward -= 5
-        elif state[1] < mmin:
-            reward -= 2
-        else:
-            reward += 1
+#        if state[2] < mmin or state[0] < mmin:
+ #           reward -= 1
+  #      if state[1] >= fmin:
+   #         reward -= 5
+    #    elif state[1] < mmin:
+     #       reward -= 2
+      #  else:
+       #     reward += 1
         return reward
 
     def rewardState(self, ranges, mmin, fmin):
@@ -221,9 +225,10 @@ class Move():
         Move.scan = None
 
         while not Move.scan and not rospy.is_shutdown():
+            self.publishTwist([0,0])
             rospy.sleep(0.1)
         
-        reward, state = self.rewardState(Move.ranges, 0.5, 1.1)
+        reward, state = self.rewardState(Move.ranges, 0.25, 0.4)
 
         if random.random() < eps:
             action = np.random.choice(list(Q[state].keys()))
@@ -237,7 +242,7 @@ class Move():
             self.pause_physics()
             steps += 1
 
-            reward, newState = self.rewardState(Move.ranges, 0.5, 1.1)
+            reward, newState = self.rewardState(Move.ranges, 0.25, 0.4)
 
             if "left: far" in state:
                 counter += 1
@@ -250,16 +255,17 @@ class Move():
             for d in Move.ranges:
                 if not rospy.is_shutdown():
                     if d < 0.2: 
-                        reward -= 100
+                        reward -= 15
                         if total:
                             val = correct/total
-                            print(val)
+                          #  print(val)
                         termination = True
             if steps >= 800:
     #            reward += 100
                 if total:
                     val = correct/total
-                termination = True            
+                termination = True     
+
             self.updateQValue(reward, Q, state, newState, action)
 
             state = newState
@@ -275,7 +281,7 @@ class Move():
             
             self.unpause_physics()
             self.publishTwist(self.twists[action])
-            rospy.sleep(0.4)
+          #  rospy.sleep(0.4)
         return val, total
                     
     def learning(self):
@@ -298,7 +304,7 @@ class Move():
                 name = "CurrentQ.json"
                 self.saveTable(Q, name)
 #                self.plotLearning(dataEpisodes, data)
-                eps -= 1.2*(0.9-0.1)/duration
+                eps -= (0.9-0.1)/duration
     
 
     def runFile(self):
