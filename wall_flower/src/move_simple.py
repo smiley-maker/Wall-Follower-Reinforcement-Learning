@@ -131,6 +131,17 @@ class Move():
         
         plt.savefig("Learning_Rates2.pdf")
         plt.close()
+
+
+    def plot_learning_progression(self, x, left, right, forward, format="collect"):
+        x = list(range(x))
+        fig, ax = plt.subplots()
+        ax.plot(x, left)
+        ax.plot(x, right)
+        ax.plot(x, forward)
+        ax.legend(["Left Turn Learning", "Right Turn Learning", "Forward Learning"])
+        fig.savefig("Action_Learning.png")
+        plt.close()
         
 
     def split_range(self):
@@ -256,7 +267,7 @@ class Move():
                 counter += 1
             else:
                 counter = 0
-            if counter == 300:
+            if counter == 250:
                 #counter = 0
                 if total: 
                     rightVal = correct/total
@@ -304,7 +315,7 @@ class Move():
             if random.random() < eps:
                 s = sum([math.exp(a/T) for a in Q[newState].values()])
                 p = [math.exp(x/T)/s for x in Q[newState].values()]
-                new_action = np.random.choice(list(Q[newState].keys()), p=p)
+                new_action = np.random.choice(list(Q[newState].keys()))#, p=p)
             
             else:
                 new_action = max(Q[newState], key=Q[newState].get)
@@ -332,8 +343,6 @@ class Move():
             action = new_action
             state = newState
         
-        print("hi")
-
         
         return [(frontVal, forwardTotal), (rightVal, total), (leftVal, leftTotal)]
     
@@ -344,10 +353,7 @@ class Move():
         data = []
         dataEpisodes = 0
         leftData = []
-        leftEpisodes = 0
         forwardData = []
-        forwardEpisodes = 0
-        appendedData = []
 
         for e in range(duration):
             if not rospy.is_shutdown():
@@ -356,23 +362,19 @@ class Move():
 
                 Q = self.get_table("minimalQ2.json")
                 info = self.epoch(Q, eps)
-                if info[0][1] > 10:
-                    forwardData.append(info[0][0])
-                    forwardEpisodes += 1
-                    appendedData.append(forwardData)
                 if info[1][1] > 10:
-                    data.append(info[1][0])
                     dataEpisodes += 1
-                    appendedData.append(data)
-                if info[2][1] > 10:
+                    forwardData.append(info[0][0])
+                    data.append(info[1][0])
                     leftData.append(info[2][0])
-                    leftEpisodes += 1
-                    appendedData.append(leftData)
                 
-                self.plotLearning(dataEpisodes, self.learningFilter(data, 0.04, 0.1, 2), name="right-cutoff.png")
-                self.plotLearning(dataEpisodes, data, name="right.png")
-                self.plotLearning(forwardEpisodes, forwardData, name="forward.png")
-                self.plotLearning(leftEpisodes, leftData, name="left.png")
+#                self.plotLearning(dataEpisodes, self.learningFilter(data, 0.04, 0.1, 2), name="right-cutoff.png")
+#                self.plotLearning(dataEpisodes, data, name="right.png")
+ #               self.plotLearning(forwardEpisodes, forwardData, name="forward.png")
+  #              self.plotLearning(leftEpisodes, leftData, name="left.png")
+                    self.plot_learning_progression(dataEpisodes, leftData, data, forwardData)
+                
+                
 
                 #self.plot_learning([[forwardEpisodes], [dataEpisodes], [leftEpisodes]], [forwardData, data, leftData], 3)
                 
@@ -384,6 +386,8 @@ class Move():
                 
                 eps -= 1.2*(0.8)/duration
               #  rospy.sleep(0.1)
+        
+        self.plot_learning_progression(dataEpisodes, leftData, data, forwardData, format="save")
     
 
     def runFile(self):
