@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Site BuildName="(empty)"
+	BuildStamp="20230304-0027-Experimental"
+	Name="comp4510ian"
+	Generator="ctest-3.16.3"
+	CompilerName="/usr/bin/aarch64-linux-gnu-g++"
+	CompilerVersion="9.4.0"
+	OSName="Linux"
+	Hostname="comp4510ian"
+	OSRelease="5.4.0-139-generic"
+	OSVersion="#156-Ubuntu SMP Sat Jan 21 13:46:46 UTC 2023"
+	OSPlatform="aarch64"
+	Is64Bits="1"
+	VendorString=""
+	VendorID="Unknown Manufacturer"
+	FamilyID="8"
+	ModelID="0"
+	ProcessorCacheSize="0"
+	NumberOfLogicalCPU="8"
+	NumberOfPhysicalCPU="1"
+	TotalVirtualMemory="3915"
+	TotalPhysicalMemory="7933"
+	LogicalProcessorsPerPhysical="8"
+	ProcessorClockFrequency="0"
+	>
+	<Testing>
+		<StartDateTime>Mar 03 17:27 MST</StartDateTime>
+		<StartTestTime>1677889644</StartTestTime>
+		<TestList/>
+		<EndDateTime>Mar 03 17:27 MST</EndDateTime>
+		<EndTestTime>1677889644</EndTestTime>
+		<ElapsedMinutes>0</ElapsedMinutes>
+	</Testing>
+</Site>

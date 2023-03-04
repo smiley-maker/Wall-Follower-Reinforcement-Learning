@@ -545,7 +545,7 @@ class Learn():
     def test(self):
         duration = 100 #Demo duration
 
-        q = self.get_table("minimalQ3.json")
+        q = self.get_table("minimalQ.json")
 
         for e in range(duration): #loops through the duration
             if not rospy.is_shutdown():
