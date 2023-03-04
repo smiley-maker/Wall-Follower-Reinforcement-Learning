@@ -1,0 +1,8 @@
+prefix=/home/iansinclair/github/jordans_ws/src/Wall-Follower-Reinforcement-Learning/build/devel
+
+Name: wall_flower
+Description: Description of wall_flower
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

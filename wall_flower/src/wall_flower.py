@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 #ROS Imports
+import sys
 import rospy
 from sensor_msgs.msg import LaserScan
 from geometry_msgs.msg import Twist
@@ -18,6 +19,9 @@ import math
 #Data Imports
 import json
 
+#Other imports
+import make_table
+
 
 class Learn():
     """
@@ -30,8 +34,8 @@ class Learn():
 
     #Twist definitions for each action in the state space
     twists = {
-        "right": [0.2, -0.95],
-        "left": [0.2, 0.95],
+        "right": [0.2, 0.95],
+        "left": [0.2, -0.95],
         "forward": [0.2,0.001]
     }
 
@@ -60,8 +64,11 @@ class Learn():
         self.init_subscriber()
         
         if Learn.mode == "train":
+            rospy.loginfo('Initializing Training Mode')
+#            make_table.construct_table()
             self.training()
         elif Learn.mode == "test":
+            rospy.loginfo('Initializing Testing Mode')
             self.test()
         else:
             print("Unrecognized mode, please try either train or test.")
@@ -182,13 +189,15 @@ class Learn():
         return (forwardAccuracy, leftAccuracy, rightAccuracy)    
 
 
-    def learningPlot(self, x, y, label):
+    def learningPlot(self, x, y, label, title, color):
         x  = list(range(x)) #Gets the x axis based on the number of episodes
 
         fig, ax = plt.subplots() #Creates a matplotlib subplot
 
         #Plots the given data
-        ax.plot(x, y)
+        ax.plot(x, y, color=color)
+        ax.set_title(title)
+        
     
         fig.savefig(label)
         plt.close()
@@ -431,7 +440,7 @@ class Learn():
 
         #Variables
         eps = 0.9 #epsilon used to determine chance of random action
-        duration = 420 #Number of episodes run in a training session
+        duration = 500 #Number of episodes run in a training session
         rightData = []
         leftData = []
         forwardData = []
@@ -446,31 +455,31 @@ class Learn():
                 rospy.loginfo("Episode: " + str(iteration))
 
                 #Gets the current q table from the stored file
-                Q = self.get_table("minimalQ2.json")
+                Q = self.get_table("minimalQ3.json")
                 #Runs the episode and gets the accuracy data
                 accData = self.episode(Q, eps)
                 #Forward distribution:
-                if accData[0][1] >= 20: #I decided to reduce noise in my graphs by only taking episodes with at least 20 steps
+                if accData[0][1] >= 15: #I decided to reduce noise in my graphs by only taking episodes with at least 20 steps
                     forwardEpisodes += 1
                     forwardData.append(accData[0][0]) #Appends the current forward accuracy
                 
                 #Right distribution:
-                if accData[1][1] >= 20:
+                if accData[1][1] >= 15:
                     rightEpisodes += 1
                     rightData.append(accData[1][0]) #Appends the current right accuracy
                 
                 #Left distribution
-                if accData[2][1] >= 20:
+                if accData[2][1] >= 15:
                     leftEpisodes += 1
                     leftData.append(accData[2][0]) #Appends the current left accuracy
                 
                 #Plots the current learning trends for each action
-                self.learningPlot(forwardEpisodes, forwardData, "forwardLearning.png")
-                self.learningPlot(rightEpisodes, rightData, "rightLearning.png")
-                self.learningPlot(leftEpisodes, leftData, "leftLearning.png")
+                self.learningPlot(forwardEpisodes, forwardData, "forwardLearning.png", "Forward", "#50b6fa")
+                self.learningPlot(rightEpisodes, rightData, "rightLearning.png", "Right", "#ff4de4")
+                self.learningPlot(leftEpisodes, leftData, "leftLearning.png", "Left", "#a04dff")
 
                 #Saves the q table to a json file
-                self.save_table(Q, "minimalQ2.json")
+                self.save_table(Q, "minimalQ3.json")
 
                 #Reduces epsilon (It should eventually move from 0.9 to 0.1)
                 eps -= 1.2*(0.8/duration)
@@ -478,8 +487,15 @@ class Learn():
 
     def runFile(self, Q):
         Learn.scan = None #Sets the current scan data to none so that the algorithm can start with latest scan
-        termination = True
+        termination = False
         steps = 0
+
+  #      self.unpause_physics()
+
+        options = [self.makeModelState(pos) for pos in self.startPoses]
+        self.set_state(np.random.choice(options))
+        self.publishTwist([0,0]) #Publishes a twist with 0 linear/angular velocities
+
 
         while not rospy.is_shutdown() and not Learn.scan:
             rospy.sleep(0.1) #waits for scan daata
@@ -495,8 +511,9 @@ class Learn():
 
         #Loops until terminated
         while not termination and not rospy.is_shutdown():
-            self.pause_physics() #pauses physics in the simulation while calculating
             rospy.sleep(0.1)
+ #           self.pause_physics() #pauses physics in the simulation while calculating
+#            rospy.sleep(0.1)
             steps += 1 #Increments the steps with each iteration
 
             #Calculates the reward and new state
@@ -505,7 +522,7 @@ class Learn():
             #Checks to see if the robot has crashed
             for d in Learn.ranges:
                 if not rospy.is_shutdown():
-                    if d < 0.2:
+                    if d < 0.15:
                         termination = True
                         break
             
@@ -520,7 +537,7 @@ class Learn():
             #Gets the action for the current state using a purely greedy choice
             action = max(Q[state], key=Q[state].get)
 
-            self.unpause_physics() #Unpauses physics to publish
+#            self.unpause_physics() #Unpauses physics to publish
             #Publishes a twist corresponding to the calculated action
             self.publishTwist(self.twists[action])
     
@@ -528,9 +545,13 @@ class Learn():
     def test(self):
         duration = 100 #Demo duration
 
+        q = self.get_table("minimalQ.json")
+
         for e in range(duration): #loops through the duration
             if not rospy.is_shutdown():
-                self.runFile()
+                print(e)
+                self.runFile(q)
+                rospy.sleep(0.1)
     
 
     def callback(self, dist):
@@ -542,4 +563,4 @@ class Learn():
 
 if __name__ == "__main__":
     
-    l = Learn(mode="train")
+    l = Learn(mode="test")

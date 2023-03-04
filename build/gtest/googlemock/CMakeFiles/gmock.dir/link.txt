@@ -1,0 +1,1 @@
+/usr/bin/aarch64-linux-gnu-g++ -fPIC -g  -shared -Wl,-soname,libgmockd.so -o ../lib/libgmockd.so CMakeFiles/gmock.dir/src/gmock-all.cc.o  -Wl,-rpath,/home/iansinclair/github/jordans_ws/src/Wall-Follower-Reinforcement-Learning/build/gtest/lib ../lib/libgtestd.so -lpthread 
