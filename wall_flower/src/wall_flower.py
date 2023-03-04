@@ -65,7 +65,7 @@ class Learn():
         
         if Learn.mode == "train":
             rospy.loginfo('Initializing Training Mode')
-#            make_table.construct_table()
+            make_table.construct_table()
             self.training()
         elif Learn.mode == "test":
             rospy.loginfo('Initializing Testing Mode')
@@ -337,6 +337,7 @@ class Learn():
         leftAccuracy = 0
         rightAccuracy = 0
         termination = False
+        totalReward = 0
 
         options = [self.makeModelState(pos) for pos in self.startPoses]
         self.set_state(np.random.choice(options))
@@ -366,6 +367,7 @@ class Learn():
             steps += 1 #increments the total number of steps taken
             
             reward, newState = self.rewardState(0.5, 0.75) #Gets the new state and reward using a good range of 0.5-0.75
+            totalReward += reward
 
             #Termination checks ->
 
@@ -404,10 +406,11 @@ class Learn():
                 new_action = max(Q[newState], key=Q[newState].get)
                 
                 #Checks if the state is one of the states I considered to have actions of forward, right, and left, respectively
+                #Change before submitting!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 if state == "forward: medium, left: medium":
-                    rightTotal += 1
+                    leftTotal += 1
                     if new_action == "right":
-                        rightCorrect += 1
+                        leftCorrect += 1
                 
                 if state == "forward: far, left: medium":
                     forwardTotal += 1
@@ -415,22 +418,22 @@ class Learn():
                         forwardCorrect += 1
                 
                 if state == "forward: far, left: far":
-                    leftTotal += 1
+                    rightTotal += 1
                     if new_action == "left":
-                        leftCorrect += 1
+                        rightCorrect += 1
             
 
  #           self.unpause_physics() #unpauses physics while publishing
             #Publishes a twist with the chosen action
             self.publishTwist(self.twists[new_action])
             #Updates the q table
-            self.updateQValue(reward, Q, state, newState, action, new_action=new_action, strategy="sarsa")
+            self.updateQValue(reward, Q, state, newState, action, new_action=new_action, strategy="td")
             #sets the variables for the next iteration
             action = new_action
             state = newState
         
         #Once the episode finishes, the total and correct values for each action are returned for plotting
-        return [(forwardAccuracy, forwardTotal), (rightAccuracy, rightTotal), (leftAccuracy, leftTotal)]
+        return [(forwardAccuracy, forwardTotal), (rightAccuracy, rightTotal), (leftAccuracy, leftTotal), totalReward]
     
 
     def training(self):
@@ -444,6 +447,7 @@ class Learn():
         rightData = []
         leftData = []
         forwardData = []
+        rewardData = []
         rightEpisodes = 0
         leftEpisodes = 0
         forwardEpisodes = 0
@@ -472,14 +476,17 @@ class Learn():
                 if accData[2][1] >= 15:
                     leftEpisodes += 1
                     leftData.append(accData[2][0]) #Appends the current left accuracy
+
+                rewardData.append(accData[3])
                 
                 #Plots the current learning trends for each action
-                self.learningPlot(forwardEpisodes, forwardData, "forwardLearning.png", "Forward", "#50b6fa")
-                self.learningPlot(rightEpisodes, rightData, "rightLearning.png", "Right", "#ff4de4")
-                self.learningPlot(leftEpisodes, leftData, "leftLearning.png", "Left", "#a04dff")
+                self.learningPlot(forwardEpisodes, forwardData, "TDforwardLearning.png", "TD Forward", "#50b6fa")
+                self.learningPlot(rightEpisodes, rightData, "TDrightLearning.png", "TD Right", "#ff4de4")
+                self.learningPlot(leftEpisodes, leftData, "TDleftLearning.png", "TD Left", "#a04dff")
+                self.learningPlot(iteration+1, rewardData, "RewardTD.png", "TD Reward", "#a04dff")
 
                 #Saves the q table to a json file
-                self.save_table(Q, "minimalQ3.json")
+                self.save_table(Q, "minimalQ2.json")
 
                 #Reduces epsilon (It should eventually move from 0.9 to 0.1)
                 eps -= 1.2*(0.8/duration)
@@ -545,7 +552,7 @@ class Learn():
     def test(self):
         duration = 100 #Demo duration
 
-        q = self.get_table("minimalQ.json")
+        q = self.get_table("minimalQ3.json")
 
         for e in range(duration): #loops through the duration
             if not rospy.is_shutdown():
@@ -563,4 +570,4 @@ class Learn():
 
 if __name__ == "__main__":
     
-    l = Learn(mode="test")
+    l = Learn(mode="train")
