@@ -38,34 +38,38 @@ class makeTable():
         """
         Generates a json file using the queue table determined above. 
         """        
-        with open("minimalQ2.json", "w") as f:
+        with open("minimalQ3.json", "w") as f:
             json.dump(self.q, f, indent=4)
     
 
+def construct_table() :
+    actions = {"forward": 0, "right": 0, "left": 0}
+    states = []
+    base_states = ["close", "medium", "far"]
+    for one in base_states:
+        for two in base_states:
+            state = f"forward: {one}, left: {two}"
+            states.append(state)
 
-actions = {"forward": 0, "right": 0, "left": 0}
-states = []
-base_states = ["close", "medium", "far"]
-for one in base_states:
-    for two in base_states:
-        state = f"forward: {one}, left: {two}"
-        states.append(state)
 
 
+    # #Sets up the actions and states I chose to use. 
+    # actions = {"forward": 0, "right": 0, "left": 0}
+    # states = []
+    # base_states = ["close", "medium", "far"]
+    # #Loops through the base state three times to create a string containing
+    # #each of forward, right, and left. 
+    # for one in base_states:
+    #     for two in base_states:
+    #         for three in base_states:
+    #             state = f"forward: {one}, right: {two}, left: {three}"
+    #             states.append(state)
 
-# #Sets up the actions and states I chose to use. 
-# actions = {"forward": 0, "right": 0, "left": 0}
-# states = []
-# base_states = ["close", "medium", "far"]
-# #Loops through the base state three times to create a string containing
-# #each of forward, right, and left. 
-# for one in base_states:
-#     for two in base_states:
-#         for three in base_states:
-#             state = f"forward: {one}, right: {two}, left: {three}"
-#             states.append(state)
+    #Makes, formats, and saves the queue table. 
+    tableMaker = makeTable(states, actions)
+    tableMaker.formatDict()
+    tableMaker.saveToJson()
 
-#Makes, formats, and saves the queue table. 
-tableMaker = makeTable(states, actions)
-tableMaker.formatDict()
-tableMaker.saveToJson()
+
+if __name__ == "__main__":
+    construct_table()

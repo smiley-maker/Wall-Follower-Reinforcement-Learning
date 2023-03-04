@@ -1,0 +1,1 @@
+/usr/bin/aarch64-linux-gnu-g++ -fPIC -g  -shared -Wl,-soname,libgmock_maind.so -o ../lib/libgmock_maind.so CMakeFiles/gmock_main.dir/src/gmock_main.cc.o  -Wl,-rpath,/home/iansinclair/github/jordans_ws/src/Wall-Follower-Reinforcement-Learning/build/gtest/lib ../lib/libgmockd.so ../lib/libgtestd.so -lpthread 
