@@ -43,11 +43,12 @@ class Learn():
     ranges = None #List of ranges from the robot's laser scan
 
     mode = "train" #Mode definition to determine whether we are in training or testing mode
+    learningType = "sarsa" #type of learning and or testing to implement (sarsa or q learning)
 
     #List of start poses for training
     startPoses = [(-1.75, 1.8, 0.0), (1.5, -1.0, 0.0), (1.5, 1.0, 1.0)]
 
-    def __init__(self, mode="train"):
+    def __init__(self, mode="train", learningType="sarsa"):
         """
         Constructor to initialize node, services, publisher, and subscriber. 
         Checks what state the program is in using the mode variable.
@@ -58,6 +59,7 @@ class Learn():
         """
 
         Learn.mode = mode
+        Learn.learningType = learningType
         self.init_node()
         self.init_services()
         self.init_publisher()
@@ -423,11 +425,10 @@ class Learn():
                         rightCorrect += 1
             
 
- #           self.unpause_physics() #unpauses physics while publishing
             #Publishes a twist with the chosen action
             self.publishTwist(self.twists[new_action])
             #Updates the q table
-            self.updateQValue(reward, Q, state, newState, action, new_action=new_action, strategy="td")
+            self.updateQValue(reward, Q, state, newState, action, new_action=new_action, strategy=Learn.learningType)
             #sets the variables for the next iteration
             action = new_action
             state = newState
@@ -569,5 +570,6 @@ class Learn():
 
 
 if __name__ == "__main__":
-    
-    l = Learn(mode="train")
+    mode = input("Would you like to train or test Tim the Turtlebot? Please enter 'train' or 'test'. ")
+    learningType = input("Would you like to use SARSA or Q-learning to demo/train? Please enter 'sarsa' or 'q'")
+    l = Learn(mode=mode.lower(), learningType=learningType)
