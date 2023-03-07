@@ -43,11 +43,12 @@ class Learn():
     ranges = None #List of ranges from the robot's laser scan
 
     mode = "train" #Mode definition to determine whether we are in training or testing mode
+    learningMode = "sarsa" #Mode for demo and training (sarsa or q learning)
 
     #List of start poses for training
     startPoses = [(-1.75, 1.8, 0.0), (1.5, -1.0, 0.0), (1.5, 1.0, 1.0)]
 
-    def __init__(self, mode="train"):
+    def __init__(self, mode="train", learningMode="sarsa"):
         """
         Constructor to initialize node, services, publisher, and subscriber. 
         Checks what state the program is in using the mode variable.
@@ -58,16 +59,20 @@ class Learn():
         """
 
         Learn.mode = mode
+        Learn.learningMode = learningMode
         self.init_node()
-        self.init_services()
         self.init_publisher()
         self.init_subscriber()
-        
-        if Learn.mode == "train":
+        if Learn.mode == "robot":
+            rospy.loginfo("Running on robot")
+            self.runOnRobot()
+        elif Learn.mode == "train":
+            rospy.init_services()
             rospy.loginfo('Initializing Training Mode')
             make_table.construct_table()
             self.training()
         elif Learn.mode == "test":
+            rospy.init_services()
             rospy.loginfo('Initializing Testing Mode')
             self.test()
         else:
@@ -324,7 +329,6 @@ class Learn():
     
 
     def episode(self, Q, eps):
-#        self.pause_physics() #pauses physics in the simulator while calculating
         steps = 0 #Variable to store the number of steps in the episode
         counter = 0 #Counts the number of times in a row that the robot has a left wall in the far range. 
         forwardTotal = 0 #Total number of times the robot was in a set of given states
@@ -356,12 +360,10 @@ class Learn():
         else: #motivated choice
             action = max(Q[state], key=Q[state].get) #chooses the action with the highest reward for the current state
         
- #       self.unpause_physics() #unpauses physics to publish and see result
         self.publishTwist(Learn.twists[action]) #Publishes a twist using the current action
 
         #Main loop (runs until episode is terminated)
         while not termination and not rospy.is_shutdown():
-#            self.pause_physics() #pauses physics while calculating
             rospy.sleep(0.1) #Sleeps for 0.1 seconds (since the LaserScan publishes at 10 Hz)
 
             steps += 1 #increments the total number of steps taken
@@ -423,11 +425,13 @@ class Learn():
                         rightCorrect += 1
             
 
- #           self.unpause_physics() #unpauses physics while publishing
             #Publishes a twist with the chosen action
             self.publishTwist(self.twists[new_action])
             #Updates the q table
-            self.updateQValue(reward, Q, state, newState, action, new_action=new_action, strategy="td")
+            if Learn.learningMode:
+                self.updateQValue(reward, Q, state, newState, action, new_action=new_action, strategy=Learn.learningMode)
+            else:
+                self.updateQValue(reward, Q, state, newState, action, strategy=Learn.learningMode)
             #sets the variables for the next iteration
             action = new_action
             state = newState
@@ -459,7 +463,10 @@ class Learn():
                 rospy.loginfo("Episode: " + str(iteration))
 
                 #Gets the current q table from the stored file
-                Q = self.get_table("minimalQ3.json")
+                if Learn.learningMode == "sarsa":
+                    Q = self.get_table("SARSAQTABLE.json")
+                else:
+                    Q = self.get_table("TDQTABLE.json")
                 #Runs the episode and gets the accuracy data
                 accData = self.episode(Q, eps)
                 #Forward distribution:
@@ -479,25 +486,79 @@ class Learn():
 
                 rewardData.append(accData[3])
                 
-                #Plots the current learning trends for each action
-                self.learningPlot(forwardEpisodes, forwardData, "TDforwardLearning.png", "TD Forward", "#50b6fa")
-                self.learningPlot(rightEpisodes, rightData, "TDrightLearning.png", "TD Right", "#ff4de4")
-                self.learningPlot(leftEpisodes, leftData, "TDleftLearning.png", "TD Left", "#a04dff")
-                self.learningPlot(iteration+1, rewardData, "RewardTD.png", "TD Reward", "#a04dff")
+                if self.learningMode == "sarsa":
+                    #Plots the current learning trends for each action
+                    self.learningPlot(forwardEpisodes, forwardData, "SarsaforwardLearning.png", "SARSA Forward", "#50b6fa")
+                    self.learningPlot(rightEpisodes, rightData, "SARSArightLearning.png", "SARSA Right", "#ff4de4")
+                    self.learningPlot(leftEpisodes, leftData, "SARSAleftLearning.png", "SARSA Left", "#a04dff")
+                    self.learningPlot(iteration+1, rewardData, "RewardSARSA.png", "SARSA Reward", "#a04dff")
 
-                #Saves the q table to a json file
-                self.save_table(Q, "minimalQ2.json")
+                    #Saves the q table to a json file
+                    self.save_table(Q, "SARSAQTABLE.json")
+                
+                else:
+                    #Plots the current learning trends for each action
+                    self.learningPlot(forwardEpisodes, forwardData, "TDforwardLearning.png", "SARSA Forward", "#50b6fa")
+                    self.learningPlot(rightEpisodes, rightData, "TDrightLearning.png", "SARSA Right", "#ff4de4")
+                    self.learningPlot(leftEpisodes, leftData, "TDleftLearning.png", "SARSA Left", "#a04dff")
+                    self.learningPlot(iteration+1, rewardData, "RewardTD.png", "SARSA Reward", "#a04dff")
+
+                    #Saves the q table to a json file
+                    self.save_table(Q, "TDQTABLE.json")
+
 
                 #Reduces epsilon (It should eventually move from 0.9 to 0.1)
                 eps -= 1.2*(0.8/duration)
+    
+
+    def runRobot(self, Q):
+        Learn.scan = None
+        termination = False
+        steps = 0
+
+        while not rospy.is_shutdown() and not Learn.scan:
+            rospy.sleep(0.1)
+        #Gets initial state and reward
+        reward, state = self.rewardState(0.5, 0.75)
+
+        #Gets greedy action (no randomness when simply testing)
+        action = max(Q[state], key=Q[state].get)
+
+        #Publishes twist corresponding to the action chosen
+        self.publishTwist(Learn.twists[action])
+
+        #Loops until terminated
+        while not termination and not rospy.is_shutdown():
+#            rospy.sleep(0.1)
+            steps += 1 #Increments the steps with each iteration
+
+            #Calculates the reward and new state
+            reward, newState = self.rewardState(0.5, 0.75)
+
+            #Checks to see if the robot has crashed
+            for d in Learn.ranges:
+                if not rospy.is_shutdown():
+                    if d < 0.15:
+                        self.publishTwist([0, 0])
+                        termination = True
+                        break
+                        
+            #Updates the state for the next iteration
+            state = newState
+
+            #Gets the action for the current state using a purely greedy choice
+            action = max(Q[state], key=Q[state].get)
+
+            #Publishes a twist corresponding to the calculated action
+            self.publishTwist(self.twists[action])
+        
+
     
 
     def runFile(self, Q):
         Learn.scan = None #Sets the current scan data to none so that the algorithm can start with latest scan
         termination = False
         steps = 0
-
-  #      self.unpause_physics()
 
         options = [self.makeModelState(pos) for pos in self.startPoses]
         self.set_state(np.random.choice(options))
@@ -519,7 +580,6 @@ class Learn():
         #Loops until terminated
         while not termination and not rospy.is_shutdown():
             rospy.sleep(0.1)
- #           self.pause_physics() #pauses physics in the simulation while calculating
 #            rospy.sleep(0.1)
             steps += 1 #Increments the steps with each iteration
 
@@ -534,7 +594,7 @@ class Learn():
                         break
             
             #Checks if the robot has completed 800 steps (end goal)
-            if steps >= 800:
+            if steps >= 2000:
                 termination = True
                 break
             
@@ -544,21 +604,38 @@ class Learn():
             #Gets the action for the current state using a purely greedy choice
             action = max(Q[state], key=Q[state].get)
 
-#            self.unpause_physics() #Unpauses physics to publish
             #Publishes a twist corresponding to the calculated action
             self.publishTwist(self.twists[action])
     
 
     def test(self):
         duration = 100 #Demo duration
-
-        q = self.get_table("minimalQ3.json")
+        
+        if self.learningMode == "sarsa":
+            q = self.get_table("SARSAQTABLE.json")
+        else:
+            q = self.get_table("TDQTABLE.json")
 
         for e in range(duration): #loops through the duration
             if not rospy.is_shutdown():
                 print(e)
                 self.runFile(q)
                 rospy.sleep(0.1)
+    
+
+    def runOnRobot(self):
+        duration = 20
+        if self.learningMode == "sarsa":
+            q = self.get_table("SARSAQTABLE.json")
+        else:
+            q = self.get_table("TDQTABLE.json")
+        
+        for e in range(duration):
+            if not rospy.is_shutdown():
+                self.runRobot(q)
+    
+
+    
     
 
     def callback(self, dist):
@@ -569,5 +646,7 @@ class Learn():
 
 
 if __name__ == "__main__":
+    mode = input("Would you like to train or test Tim the Turtlebot? If testing on the robot, enter robot. Please enter 'train', 'robot', or 'test'. ")
+    learningType = input("Would you like to use SARSA or Q-learning to demo/train? Please enter 'sarsa' or 'q'")
     
-    l = Learn(mode="train")
+    l = Learn(mode=mode.lower(), learningMode=learningType)
