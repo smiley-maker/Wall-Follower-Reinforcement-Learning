@@ -462,7 +462,7 @@ class Learn():
                 rospy.loginfo("Episode: " + str(iteration))
 
                 #Gets the current q table from the stored file
-                if Learn.learningMode == "sarsa":
+                if Learn.learningType == "sarsa":
                     Q = self.get_table("SARSAQTABLE.json")
                 else:
                     Q = self.get_table("TDQTABLE.json")
@@ -485,7 +485,7 @@ class Learn():
 
                 rewardData.append(accData[3])
                 
-                if self.learningMode == "sarsa":
+                if self.learningType == "sarsa":
                     #Plots the current learning trends for each action
                     self.learningPlot(forwardEpisodes, forwardData, "SarsaforwardLearning.png", "SARSA Forward", "#50b6fa")
                     self.learningPlot(rightEpisodes, rightData, "SARSArightLearning.png", "SARSA Right", "#ff4de4")
@@ -610,7 +610,7 @@ class Learn():
     def test(self):
         duration = 100 #Demo duration
         
-        if self.learningMode == "sarsa":
+        if self.learningType == "sarsa":
             q = self.get_table("SARSAQTABLE.json")
         else:
             q = self.get_table("TDQTABLE.json")
@@ -624,7 +624,7 @@ class Learn():
 
     def runOnRobot(self):
         duration = 20
-        if self.learningMode == "sarsa":
+        if self.learningType == "sarsa":
             q = self.get_table("SARSAQTABLE.json")
         else:
             q = self.get_table("TDQTABLE.json")
@@ -640,7 +640,9 @@ class Learn():
     def callback(self, dist):
         #callback for the subscriber that gets the laser scan data and sets class variables
         Learn.scan = True
-        Learn.ranges = list(dist.ranges)
+        #  make sure there are no 0's
+        Learn.ranges = [a if 0.1 < a < 3.5 else 3.5 for a in dist.ranges]
+       # Learn.ranges = list(dist.ranges)
 
 
 
@@ -648,4 +650,4 @@ if __name__ == "__main__":
     mode = input("Would you like to train or test Tim the Turtlebot? If testing on the robot, enter robot. Please enter 'train', 'robot', or 'test'. ")
     learningType = input("Would you like to use SARSA or Q-learning to demo/train? Please enter 'sarsa' or 'q'")
     
-    l = Learn(mode=mode.lower(), learningMode=learningType)
+    l = Learn(mode=mode.lower(), learningType=learningType)
