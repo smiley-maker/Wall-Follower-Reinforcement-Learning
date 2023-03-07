@@ -43,12 +43,13 @@ class Learn():
     ranges = None #List of ranges from the robot's laser scan
 
     mode = "train" #Mode definition to determine whether we are in training or testing mode
-    learningMode = "sarsa" #Mode for demo and training (sarsa or q learning)
+    learningType = "sarsa" #type of learning and or testing to implement (sarsa or q learning)
 
     #List of start poses for training
     startPoses = [(-1.75, 1.8, 0.0), (1.5, -1.0, 0.0), (1.5, 1.0, 1.0)]
 
-    def __init__(self, mode="train", learningMode="sarsa"):
+    def __init__(self, mode="train", learningType="sarsa"):
+
         """
         Constructor to initialize node, services, publisher, and subscriber. 
         Checks what state the program is in using the mode variable.
@@ -59,7 +60,7 @@ class Learn():
         """
 
         Learn.mode = mode
-        Learn.learningMode = learningMode
+        Learn.learningType = learningType
         self.init_node()
         self.init_publisher()
         self.init_subscriber()
@@ -428,10 +429,8 @@ class Learn():
             #Publishes a twist with the chosen action
             self.publishTwist(self.twists[new_action])
             #Updates the q table
-            if Learn.learningMode:
-                self.updateQValue(reward, Q, state, newState, action, new_action=new_action, strategy=Learn.learningMode)
-            else:
-                self.updateQValue(reward, Q, state, newState, action, strategy=Learn.learningMode)
+            self.updateQValue(reward, Q, state, newState, action, new_action=new_action, strategy=Learn.learningType)
+
             #sets the variables for the next iteration
             action = new_action
             state = newState
